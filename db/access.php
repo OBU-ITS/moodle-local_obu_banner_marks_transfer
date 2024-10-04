@@ -1,9 +1,4 @@
 <?php
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -16,19 +11,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * OBU Banner Marks Transfer - Database access settings
+ *
  * @package    obu_banner_marks_transfer
+ * @category   local
  * @author     Emir Kamel
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @copyright  2024, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
  */
-defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024072501;
-$plugin->requires = 2012120301;
-$plugin->component = 'local_obu_banner_marks_transfer';
-$plugin->maturity = MATURITY_STABLE;
 
-$plugin->release = 'v0.0.1';
-$plugin->dependencies = array(
-
+$capabilities = array(
+    'local/obu_banner_marks_transfer:apply' => array(
+        'riskbitmask' => 0,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array('user' => CAP_ALLOW)
+    ),
+    'local/obu_banner_marks_transfer:update' => array(
+        'riskbitmask' => 0,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array('user' => CAP_ALLOW)
+    )
 );

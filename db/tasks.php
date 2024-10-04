@@ -21,14 +21,17 @@
  * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024072501;
-$plugin->requires = 2012120301;
-$plugin->component = 'local_obu_banner_marks_transfer';
-$plugin->maturity = MATURITY_STABLE;
-
-$plugin->release = 'v0.0.1';
-$plugin->dependencies = array(
-
-);
+$tasks = [
+    [
+        'classname' => 'local_obu_banner_marks_transfer\task\process_marks_upload',
+        'blocking' => 0,
+        'minute' => '45',
+        'hour' => '17',
+        'day' => '*',
+        'month' => '1,7',
+        'dayofweek' => '0',
+    ],
+];

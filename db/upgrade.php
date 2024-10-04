@@ -16,19 +16,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * OBU Banner Marks Transfer - Database upgrade
+ *
  * @package    obu_banner_marks_transfer
+ * @category   local
  * @author     Emir Kamel
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @copyright  2024, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
  */
-defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024072501;
-$plugin->requires = 2012120301;
-$plugin->component = 'local_obu_banner_marks_transfer';
-$plugin->maturity = MATURITY_STABLE;
+function xmldb_local_obu_assessment_extensions_upgrade($oldversion = 0) {
+    global $DB;
+    $dbman = $DB->get_manager();
 
-$plugin->release = 'v0.0.1';
-$plugin->dependencies = array(
+    $result = true;
 
-);
+    return $result;
+}
