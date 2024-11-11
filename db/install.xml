@@ -4,29 +4,50 @@
        xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
-        <TABLE NAME="local_grade_transfer_queue" COMMENT="CoSector grade transfer queue table">
+        <TABLE NAME="marks_transfer_status" COMMENT="List of statuses usable in the plugin for assessments">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="user" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Student Number"/>
-                <FIELD NAME="course" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Course ID number"/>
-                <FIELD NAME="assessment" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment ID number"/>
-                <FIELD NAME="submission_date" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="Submission date"/>
-                <FIELD NAME="extension_date" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false" COMMENT="Extension date"/>
-                <FIELD NAME="grade" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Grade given"/>
-                <FIELD NAME="max_grade" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Maximum grade available "/>
-                <FIELD NAME="comment" TYPE="text" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Comment"/>
-                <FIELD NAME="user_udf1" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
-                <FIELD NAME="user_udf2" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
-                <FIELD NAME="queued_by" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Queued by user"/>
-                <FIELD NAME="queued_on" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Queued on date"/>
-                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
+                <FIELD NAME="status" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Name of available status type"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
         </TABLE>
 
-        <TABLE NAME="local_grade_transfer_copy" COMMENT="Our copy of CoSector's grade transfer queue table with some extra columns">
+        <TABLE NAME="marks_transfer_assess_log" COMMENT="Log table to store each assessment that marks are being held against (one to many in relation to marks_transfer_grade_log)">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="grade_xfer_queue_id" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="assessment_type" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="crn" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="term" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="component_id" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="assessment_log_object" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Deconstructed access restriction group name from CoSector’s table stored as object converted into JSON"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
+                <FIELD NAME="lastupdated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record last updated"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+
+        <TABLE NAME="marks_transfer_grade_log" COMMENT="Our copy of CoSector's grade transfer queue table with some extra columns">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="marks_xfer_assess_log_id" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="assessment_type" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="crn" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="term" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="component_id" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
+                <FIELD NAME="lastupdated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record last updated"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+
+        <TABLE NAME="marks_transfer_grade_history" COMMENT="Used to check how many times we have sent stuff to ethos">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="user" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Student Number"/>
