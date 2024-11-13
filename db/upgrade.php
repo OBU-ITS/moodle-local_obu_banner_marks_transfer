@@ -26,7 +26,7 @@
  *
  */
 
-function xmldb_local_obu_assessment_extensions_upgrade($oldversion = 0) {
+function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
     global $DB;
     $dbman = $DB->get_manager();
 

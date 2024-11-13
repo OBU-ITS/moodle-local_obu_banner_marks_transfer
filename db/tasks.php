@@ -26,7 +26,16 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'local_obu_banner_marks_transfer\task\process_marks_upload',
+        'classname' => 'local_obu_banner_marks_transfer\task\prepare_marks_transfer',
+        'blocking' => 0,
+        'minute' => '45',
+        'hour' => '17',
+        'day' => '*',
+        'month' => '1,7',
+        'dayofweek' => '0',
+    ],
+    [
+        'classname' => 'local_obu_banner_marks_transfer\task\marks_transfer',
         'blocking' => 0,
         'minute' => '45',
         'hour' => '17',

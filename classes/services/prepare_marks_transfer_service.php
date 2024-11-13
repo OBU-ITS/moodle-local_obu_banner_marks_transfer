@@ -47,8 +47,7 @@ class prepare_marks_transfer_service {
     public function get_new_transfer_records() {
         global $DB;
 
-        $latest_record = $this->get_highest_id_from_log_table();
-        $latest_record_id = $latest_record ? $latest_record->max_grade_xfer_queue_id : 0;
+        $latest_record_id = $this->get_highest_id_from_log_table();
 
         $sql = "SELECT * FROM {grade_transfer_queue}
                 WHERE id > :latest_record_id
@@ -61,39 +60,45 @@ class prepare_marks_transfer_service {
         global $DB;
 
         $previous_assessment_code = null;
-
-        $assessment_log_objects_array = $this->get_all_constructed_assessment_log_objects();
+        $previous_assessment_id = null;
 
         foreach ($new_transfer_records as $new_transfer_record) {
-            //TODO:: if new assessment code != previous assessment code then get from dictionary above or create new one (locallib function from the spec) [assessment log object]
-            //TODO:: build grade log object with assessment log object id and store in array for bulk insert
+            if ($new_transfer_record->assessment != $previous_assessment_code) {
+                $assessment_log_object = local_obu_banner_marks_transfer_deconstruct_group_name($trace ,$new_transfer_record->assessment);
+                //TODO:: insert object into table for assessment log
+                //TODO:: build grade log object with assessment log object id and store in array for bulk insert
+                $previous_assessment_code = $new_transfer_record->assessment;
+                $previous_assessment_id = $assessment_log_object->id;
+            } else {
+                //TODO:: build grade log object with previous assessment log object id and store in array for bulk insert
+            }
         }
-
         //TODO:: bulk insert grades using array
     }
 
-    //TODO:: make this return 0 if nothing
     private function get_highest_id_from_log_table() {
         global $DB;
 
         $sql = "SELECT MAX(grade_xfer_queue_id) AS max_grade_xfer_queue_id
                 FROM {marks_transfer_grade_log}";
 
-        return $DB->get_record_sql($sql);
+        $latest_record = $DB->get_record_sql($sql);
+
+        return $latest_record ? $latest_record->max_grade_xfer_queue_id : 0;
     }
 
     private function get_all_constructed_assessment_log_objects() {
         global $DB;
         //TODO:: we are storing the assessment grp name not an object and comapring those
         $sql = "SELECT *
-                FROM {marks_transfer_assess_log} WHERE assessment IN {grade_transfer_queue}";
+                FROM {marks_transfer_assess_log} WHERE assessment LIKE  IN {grade_transfer_queue}";
 
         $assessment_log_object_records =  $DB->get_records_sql($sql);
 
         $assessment_log_objects = [];
 
         foreach ($assessment_log_object_records as $assessment_log_object_record) {
-            $assessmentLogObjects[$assessment_log_object_record->id] = $assessment_log_object_record->assessment_log_object;
+            $assessment_log_objects[$assessment_log_object_record->id] = $assessment_log_object_record->assessment_log_object;
         }
 
         return $assessment_log_objects;
