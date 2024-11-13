@@ -72,6 +72,7 @@ class prepare_marks_transfer_service {
         //TODO:: bulk insert grades using array
     }
 
+    //TODO:: make this return 0 if nothing
     private function get_highest_id_from_log_table() {
         global $DB;
 
@@ -83,9 +84,9 @@ class prepare_marks_transfer_service {
 
     private function get_all_constructed_assessment_log_objects() {
         global $DB;
-
-        $sql = "SELECT assessment_log_object
-                FROM {marks_transfer_assess_log}";
+        //TODO:: we are storing the assessment grp name not an object and comapring those
+        $sql = "SELECT *
+                FROM {marks_transfer_assess_log} WHERE assessment IN {grade_transfer_queue}";
 
         $assessment_log_object_records =  $DB->get_records_sql($sql);
 
