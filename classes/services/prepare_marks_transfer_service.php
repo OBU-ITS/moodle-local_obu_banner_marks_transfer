@@ -25,6 +25,7 @@ namespace local_obu_banner_marks_transfer\services;
 
 defined('MOODLE_INTERNAL') || die();
 
+use progress_trace;
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
@@ -39,45 +40,59 @@ class prepare_marks_transfer_service {
         return self::$instance;
     }
 
+
     /**
      * Retrieves all new grade transfer queue records from the database.
      *
+     * @param progress_trace $trace
      * @return array An array of new grade_transfer_queue records.
      */
-    public function get_records_for_transfer(\progress_trace $trace) {
+    public function get_records_for_transfer(progress_trace $trace) {
         global $DB;
 
-        $latest_record_id = $this->get_highest_id_from_logs($trace);
-
-        $sql = "SELECT * FROM {grade_transfer_queue}
+        $sql = "SELECT *
+                FROM {grade_transfer_queue}
                 WHERE id > :latest_record_id
-                ORDER BY  assessment";
+                ORDER BY assessment";
+
+        $latest_record_id = $this->get_highest_id_from_logs($trace);
 
         return $DB->get_records_sql($sql, ['latest_record_id' => $latest_record_id]);
     }
 
 
-    public function transfer_records_to_logs(\progress_trace $trace, $new_transfer_records) {
+    /**
+     * @param progress_trace $trace
+     * @param $transfer_records
+     * @return void
+     */
+    public function transfer_records_to_logs(progress_trace $trace, $transfer_records) {
 
-        $previous_assessment_code = [];
-        $previous_assessment_id = [];
+        $existing_assessment_logs = $this->get_existing_assessment_logs($trace, $transfer_records);
+        $current_assessment_log = null;
+        $grade_logs = [];
 
-        foreach ($new_transfer_records as $new_transfer_record) {
-            if ($new_transfer_record->assessment != $previous_assessment_code) {
-                $assessment_log_object = local_obu_banner_marks_transfer_deconstruct_group_name($trace ,$new_transfer_record->assessment);
-                //TODO:: insert object into table for assessment log
-                //TODO:: build grade log object with assessment log object id and store in array for bulk insert
-                $previous_assessment_code = $new_transfer_record->assessment;
-                $previous_assessment_id = $assessment_log_object->id;
-            } else {
-                //TODO:: build grade log object with previous assessment log object id and store in array for bulk insert
+        foreach ($transfer_records as $transfer_record) {
+            if($transfer_record->assessment == "") {
+                // TODO : Should never happen - what should we do if it does?!
+                continue;
             }
+
+            if($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
+                $current_assessment_log = array_key_exists($transfer_record->assessment, $existing_assessment_logs)
+                    ? $existing_assessment_logs[$transfer_record->assessment]
+                    : $this->create_and_store_assessment_log($trace, $transfer_record);
+            }
+
+            $grade_log = $this->create_grade_log($trace, $current_assessment_log, $transfer_record);
+            $grade_logs[] = $grade_log;
         }
-        //TODO:: bulk insert grades using array
+
+        $this->bulk_store_grade_logs($trace, $grade_logs);
     }
 
 
-    private function get_highest_id_from_logs(\progress_trace $trace) {
+    private function get_highest_id_from_logs(progress_trace $trace) : int {
         global $DB;
 
         $sql = "SELECT 
@@ -93,20 +108,48 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function get_all_constructed_assessment_log_objects() {
+    private function get_existing_assessment_logs(progress_trace $trace, $transfer_records) : array {
         global $DB;
-        //TODO:: we are storing the assessment grp name not an object and comapring those
-        $sql = "SELECT *
-                FROM {marks_transfer_assess_log} WHERE assessment LIKE  IN {grade_transfer_queue}";
 
-        $assessment_log_object_records =  $DB->get_records_sql($sql);
+        $unique_assessments = array_unique(array_column($transfer_records, 'assessment'));
+        $unique_assessments_values = array_values($unique_assessments);
 
-        $assessment_log_objects = [];
+        $sql = "SELECT * 
+                FROM {marks_transfer_assess_log} 
+                WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments_values), '?')) . ")";
 
-        foreach ($assessment_log_object_records as $assessment_log_object_record) {
-            $assessment_log_objects[$assessment_log_object_record->id] = $assessment_log_object_record->assessment_log_object;
+        $records = $DB->get_records_sql($sql, $unique_assessments_values);
+
+        $trace->output(count($records) . " of " . count($unique_assessments) . " assessments found in existing logs.");
+
+        $assessment_logs = [];
+        foreach ($records as $record) {
+            $assessment_logs[$record->assessment] = $record;
         }
 
-        return $assessment_log_objects;
+        return $assessment_logs;
+    }
+
+
+    private function create_and_store_assessment_log(progress_trace $trace, $transfer_record) : object {
+
+        // TODO : use transfer record to build assessment object and store
+
+        return new \stdClass();
+    }
+
+
+    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
+
+        // TODO : use transfer record to build grade object
+
+        return new \stdClass();
+    }
+
+
+    private function bulk_store_grade_logs(progress_trace $trace, $grade_logs) : void {
+
+        // TODO : bulk store grade log objects
+
     }
 }
