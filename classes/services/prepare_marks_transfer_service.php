@@ -111,11 +111,14 @@ class prepare_marks_transfer_service {
                 FROM {marks_transfer_assess_log} 
                 WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments), '?')) . ")";
 
-        $assessment_logs = $DB->get_records_sql($sql, $unique_assessments);
+        $records = $DB->get_records_sql($sql, $unique_assessments);
 
-        $trace->output(count($assessment_logs) . " of " . count($unique_assessments) . " assessments found in existing logs.");
+        $trace->output(count($records) . " of " . count($unique_assessments) . " assessments found in existing logs.");
 
-        // TODO : Put the assessment logs into a dictionary for easy lookup
+        $assessment_logs = [];
+        foreach ($records as $record) {
+            $assessment_logs[$record->assessment] = $record;
+        }
 
         return $assessment_logs;
     }
