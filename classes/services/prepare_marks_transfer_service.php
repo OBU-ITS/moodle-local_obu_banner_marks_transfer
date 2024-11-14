@@ -25,6 +25,7 @@ namespace local_obu_banner_marks_transfer\services;
 
 defined('MOODLE_INTERNAL') || die();
 
+use progress_trace;
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
@@ -39,25 +40,33 @@ class prepare_marks_transfer_service {
         return self::$instance;
     }
 
+
     /**
      * Retrieves all new grade transfer queue records from the database.
      *
+     * @param progress_trace $trace
      * @return array An array of new grade_transfer_queue records.
      */
-    public function get_records_for_transfer(\progress_trace $trace) {
+    public function get_records_for_transfer(progress_trace $trace) {
         global $DB;
 
-        $latest_record_id = $this->get_highest_id_from_logs($trace);
-
-        $sql = "SELECT * FROM {grade_transfer_queue}
+        $sql = "SELECT *
+                FROM {grade_transfer_queue}
                 WHERE id > :latest_record_id
-                ORDER BY  assessment";
+                ORDER BY assessment";
+
+        $latest_record_id = $this->get_highest_id_from_logs($trace);
 
         return $DB->get_records_sql($sql, ['latest_record_id' => $latest_record_id]);
     }
 
 
-    public function transfer_records_to_logs(\progress_trace $trace, $new_transfer_records) {
+    /**
+     * @param progress_trace $trace
+     * @param $new_transfer_records
+     * @return void
+     */
+    public function transfer_records_to_logs(progress_trace $trace, $new_transfer_records) {
         global $DB;
 
         $previous_assessment_code = null;
@@ -78,7 +87,7 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function get_highest_id_from_logs(\progress_trace $trace) {
+    private function get_highest_id_from_logs(progress_trace $trace) {
         global $DB;
 
         $sql = "SELECT 
@@ -94,20 +103,19 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function get_all_constructed_assessment_log_objects() {
+    private function get_existing_assessment_logs(progress_trace $trace, $transfer_records) {
         global $DB;
-        //TODO:: we are storing the assessment grp name not an object and comapring those
-        $sql = "SELECT *
-                FROM {marks_transfer_assess_log} WHERE assessment LIKE  IN {grade_transfer_queue}";
 
-        $assessment_log_object_records =  $DB->get_records_sql($sql);
+        $unique_assessments = array_unique(array_column($transfer_records, 'assessment'));
 
-        $assessment_log_objects = [];
+        $sql = "SELECT * 
+                FROM {marks_transfer_assess_log} 
+                WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments), '?')) . ")";
 
-        foreach ($assessment_log_object_records as $assessment_log_object_record) {
-            $assessment_log_objects[$assessment_log_object_record->id] = $assessment_log_object_record->assessment_log_object;
-        }
+        $assessment_logs = $DB->get_records_sql($sql, $unique_assessments);
 
-        return $assessment_log_objects;
+        $trace->output(count($assessment_logs) . " of " . count($unique_assessments) . " assessments found in existing logs.");
+
+        return $assessment_logs;
     }
 }

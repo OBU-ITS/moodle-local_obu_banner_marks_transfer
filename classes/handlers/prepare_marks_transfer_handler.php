@@ -28,11 +28,12 @@ use local_obu_banner_marks_transfer\services\prepare_marks_transfer_service;
 use progress_trace;
 
 class prepare_marks_transfer_handler {
-    private prepare_marks_transfer_service $service;
 
+    private prepare_marks_transfer_service $service;
     private progress_trace $trace;
 
     public function __construct($trace) {
+
         $this->trace = $trace;
         $this->service = prepare_marks_transfer_service::getInstance();
     }
