@@ -86,7 +86,7 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function get_highest_id_from_logs(progress_trace $trace) {
+    private function get_highest_id_from_logs(progress_trace $trace) : int {
         global $DB;
 
         $sql = "SELECT 
@@ -102,7 +102,7 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function get_existing_assessment_logs(progress_trace $trace, $transfer_records) {
+    private function get_existing_assessment_logs(progress_trace $trace, $transfer_records) : array {
         global $DB;
 
         $unique_assessments = array_unique(array_column($transfer_records, 'assessment'));
