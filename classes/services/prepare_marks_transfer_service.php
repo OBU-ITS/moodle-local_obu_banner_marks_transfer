@@ -58,10 +58,9 @@ class prepare_marks_transfer_service {
 
 
     public function transfer_records_to_logs(\progress_trace $trace, $new_transfer_records) {
-        global $DB;
 
-        $previous_assessment_code = null;
-        $previous_assessment_id = null;
+        $previous_assessment_code = [];
+        $previous_assessment_id = [];
 
         foreach ($new_transfer_records as $new_transfer_record) {
             if ($new_transfer_record->assessment != $previous_assessment_code) {

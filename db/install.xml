@@ -17,6 +17,7 @@
         <TABLE NAME="marks_transfer_assess_log" COMMENT="Log table to store each assessment that marks are being held against (one to many in relation to marks_transfer_grade_log)">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="access_restriction_group_idnum" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Copy of 'assessment' field from CoSector's table"/>
                 <FIELD NAME="assessment_type" TYPE="text" LENGTH="12" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment or Reassessment"/>
                 <FIELD NAME="crn" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Banner course CRN"/>
                 <FIELD NAME="term" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Banner term code"/>
