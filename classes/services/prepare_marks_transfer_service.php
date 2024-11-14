@@ -112,12 +112,13 @@ class prepare_marks_transfer_service {
         global $DB;
 
         $unique_assessments = array_unique(array_column($transfer_records, 'assessment'));
+        $unique_assessments_values = array_values($unique_assessments);
 
         $sql = "SELECT * 
                 FROM {marks_transfer_assess_log} 
-                WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments), '?')) . ")";
+                WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments_values), '?')) . ")";
 
-        $records = $DB->get_records_sql($sql, $unique_assessments);
+        $records = $DB->get_records_sql($sql, $unique_assessments_values);
 
         $trace->output(count($records) . " of " . count($unique_assessments) . " assessments found in existing logs.");
 
