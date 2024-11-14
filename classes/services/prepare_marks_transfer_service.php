@@ -67,12 +67,8 @@ class prepare_marks_transfer_service {
      * @return void
      */
     public function transfer_records_to_logs(progress_trace $trace, $transfer_records) {
-        if(count($transfer_records)) {
-            return;
-        }
 
         $existing_assessment_logs = $this->get_existing_assessment_logs($trace, $transfer_records);
-        $previous_assessment_code = "";
         $current_assessment_log = null;
         $grade_logs = [];
 
@@ -82,13 +78,13 @@ class prepare_marks_transfer_service {
                 continue;
             }
 
-            if($transfer_record->assessment != $previous_assessment_code) {
+            if($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
                 $current_assessment_log = array_key_exists($transfer_record->assessment, $existing_assessment_logs)
                     ? $existing_assessment_logs[$transfer_record->assessment]
                     : $this->create_and_store_assessment_log($trace, $transfer_record);
             }
 
-            $grade_log = $this->create_grade_log_object($trace, $current_assessment_log, $transfer_record);
+            $grade_log = $this->create_grade_log($trace, $current_assessment_log, $transfer_record);
             $grade_logs[] = $grade_log;
         }
 
@@ -142,7 +138,7 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function create_grade_log_object(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
+    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
 
         // TODO : use transfer record to build grade object
 
