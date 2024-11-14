@@ -63,26 +63,36 @@ class prepare_marks_transfer_service {
 
     /**
      * @param progress_trace $trace
-     * @param $new_transfer_records
+     * @param $transfer_records
      * @return void
      */
-    public function transfer_records_to_logs(\progress_trace $trace, $new_transfer_records) {
-
-        $previous_assessment_code = [];
-        $previous_assessment_id = [];
-
-        foreach ($new_transfer_records as $new_transfer_record) {
-            if ($new_transfer_record->assessment != $previous_assessment_code) {
-                $assessment_log_object = local_obu_banner_marks_transfer_deconstruct_group_name($trace ,$new_transfer_record->assessment);
-                //TODO:: insert object into table for assessment log
-                //TODO:: build grade log object with assessment log object id and store in array for bulk insert
-                $previous_assessment_code = $new_transfer_record->assessment;
-                $previous_assessment_id = $assessment_log_object->id;
-            } else {
-                //TODO:: build grade log object with previous assessment log object id and store in array for bulk insert
-            }
+    public function transfer_records_to_logs(progress_trace $trace, $transfer_records) {
+        if(count($transfer_records)) {
+            return;
         }
-        //TODO:: bulk insert grades using array
+
+        $existing_assessment_logs = $this->get_existing_assessment_logs($trace, $transfer_records);
+        $previous_assessment_code = "";
+        $current_assessment_log = null;
+        $grade_logs = [];
+
+        foreach ($transfer_records as $transfer_record) {
+            if($transfer_record->assessment == "") {
+                // TODO : Should never happen - what should we do if it does?!
+                continue;
+            }
+
+            if($transfer_record->assessment != $previous_assessment_code) {
+                $current_assessment_log = array_key_exists($transfer_record->assessment, $existing_assessment_logs)
+                    ? $existing_assessment_logs[$transfer_record->assessment]
+                    : $this->create_and_store_assessment_log($trace, $transfer_record);
+            }
+
+            $grade_log = $this->create_grade_log_object($trace, $current_assessment_log, $transfer_record);
+            $grade_logs[] = $grade_log;
+        }
+
+        $this->bulk_store_grade_logs($trace, $grade_logs);
     }
 
 
@@ -121,5 +131,28 @@ class prepare_marks_transfer_service {
         }
 
         return $assessment_logs;
+    }
+
+
+    private function create_and_store_assessment_log(progress_trace $trace, $transfer_record) : object {
+
+        // TODO : use transfer record to build assessment object and store
+
+        return new \stdClass();
+    }
+
+
+    private function create_grade_log_object(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
+
+        // TODO : use transfer record to build grade object
+
+        return new \stdClass();
+    }
+
+
+    private function bulk_store_grade_logs(progress_trace $trace, $grade_logs) : void {
+
+        // TODO : bulk store grade log objects
+
     }
 }
