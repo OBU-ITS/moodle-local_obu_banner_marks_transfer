@@ -4,7 +4,7 @@
        xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
-        <TABLE NAME="marks_transfer_status" COMMENT="List of statuses usable in the plugin for assessments">
+        <TABLE NAME="marks_xfer_status" COMMENT="List of statuses usable in the plugin for assessments">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="status" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Name of available status type"/>
@@ -14,7 +14,7 @@
             </KEYS>
         </TABLE>
 
-        <TABLE NAME="marks_transfer_assess_log" COMMENT="Log table to store each assessment that marks are being held against (one to many in relation to marks_transfer_grade_log)">
+        <TABLE NAME="marks_xfer_assess_log" COMMENT="Log table to store each assessment that marks are being held against (one to many in relation to marks_xfer_grade_log)">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="access_restriction_group_idnum" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Copy of 'assessment' field from CoSector's table"/>
@@ -30,11 +30,11 @@
             </KEYS>
         </TABLE>
 
-        <TABLE NAME="marks_transfer_grade_log" COMMENT="Our copy of CoSector's grade transfer queue table with some extra columns">
+        <TABLE NAME="marks_xfer_grade_log" COMMENT="Our copy of CoSector's grade xfer queue table with some extra columns">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="grade_xfer_queue_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding record from CoSector's grade_transfer_queue table"/>
-                <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding assessment record from marks_transfer_assess_log table"/>
+                <FIELD NAME="grade_xfer_queue_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding record from CoSector's grade_xfer_queue table"/>
+                <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding assessment record from marks_xfer_assess_log table"/>
                 <FIELD NAME="student_number" TYPE="text" LENGTH="8" NOTNULL="true" SEQUENCE="false" COMMENT="Banner Id"/>
                 <FIELD NAME="completed_date" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submission date"/>
                 <FIELD NAME="current_reason" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment group suffix"/>
@@ -44,20 +44,20 @@
                 <FIELD NAME="comment" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="New grade comment"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
                 <FIELD NAME="lastupdated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record last updated"/>
-                <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_transfer_status"/>
+                <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_status"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="grade_xfer_queue_id" TYPE="foreign" FIELDS="grade_xfer_queue_id"/>
-                <KEY NAME="marks_xfer_assess_log_id" TYPE="foreign" FIELDS="marks_xfer_assess_log_id"/>
-                <KEY NAME="status" TYPE="foreign" FIELDS="status"/>
+                <KEY NAME="grade_xfer_queue_id" TYPE="foreign" FIELDS="grade_xfer_queue_id" REFTABLE="grade_xfer_queue" REFFIELDS="id"/>
+                <KEY NAME="marks_xfer_assess_log_id" TYPE="foreign" FIELDS="marks_xfer_assess_log_id" REFTABLE="marks_xfer_assess_log" REFFIELDS="id"/>
+                <KEY NAME="status" TYPE="foreign" FIELDS="status" REFTABLE="marks_xfer_status" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
 
-        <TABLE NAME="marks_transfer_asses_history" COMMENT="Used to check how many times we have sent stuff to ethos">
+        <TABLE NAME="marks_xfer_asses_history" COMMENT="Used to check how many times we have sent stuff to ethos">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_transfer_assess_log"/>
+                <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_assess_log"/>
                 <FIELD NAME="response_code" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="API response code"/>
                 <FIELD NAME="response_name" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="API response name"/>
                 <FIELD NAME="error_message" TYPE="text" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Error message for non 200 responses"/>
@@ -65,24 +65,24 @@
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="marks_xfer_assess_log_id" TYPE="foreign" FIELDS="marks_xfer_assess_log_id"/>
+                <KEY NAME="marks_xfer_assess_log_id" TYPE="foreign" FIELDS="marks_xfer_assess_log_id" REFTABLE="marks_xfer_assess_log" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
 
-        <TABLE NAME="marks_transfer_grade_history" COMMENT="Used to check how many times we have sent stuff to ethos">
+        <TABLE NAME="marks_xfer_grade_history" COMMENT="Used to check how many times we have sent stuff to ethos">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="marks_xfer_grade_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_transfer_grade_log"/>
-                <FIELD NAME="marks_xfer_assess_history_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_transfer_asses_history"/>
-                <FIELD NAME="transfer_message" TYPE="text" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Message for grade API call"/>
-                <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_transfer_status"/>
+                <FIELD NAME="marks_xfer_grade_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_grade_log"/>
+                <FIELD NAME="marks_xfer_assess_history_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_asses_history"/>
+                <FIELD NAME="xfer_message" TYPE="text" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Message for grade API call"/>
+                <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_status"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="marks_xfer_grade_log_id" TYPE="foreign" FIELDS="marks_xfer_grade_log_id"/>
-                <KEY NAME="marks_xfer_assess_history_id" TYPE="foreign" FIELDS="marks_xfer_assess_history_id"/>
-                <KEY NAME="status" TYPE="foreign" FIELDS="status"/>
+                <KEY NAME="marks_xfer_grade_log_id" TYPE="foreign" FIELDS="marks_xfer_grade_log_id" REFTABLE="marks_xfer_grade_log" REFFIELDS="id"/>
+                <KEY NAME="marks_xfer_assess_history_id" TYPE="foreign" FIELDS="marks_xfer_assess_history_id" REFTABLE="marks_xfer_asses_history" REFFIELDS="id"/>
+                <KEY NAME="status" TYPE="foreign" FIELDS="status" REFTABLE="marks_xfer_status" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
     </TABLES>
