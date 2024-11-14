@@ -44,10 +44,10 @@ class prepare_marks_transfer_service {
      *
      * @return array An array of new grade_transfer_queue records.
      */
-    public function get_new_transfer_records() {
+    public function get_records_for_transfer(\progress_trace $trace) {
         global $DB;
 
-        $latest_record_id = $this->get_highest_id_from_log_table();
+        $latest_record_id = $this->get_highest_id_from_logs($trace);
 
         $sql = "SELECT * FROM {grade_transfer_queue}
                 WHERE id > :latest_record_id
@@ -56,7 +56,8 @@ class prepare_marks_transfer_service {
         return $DB->get_records_sql($sql, ['latest_record_id' => $latest_record_id]);
     }
 
-    public function prepare_marks_transfer(\progress_trace $trace, $new_transfer_records) {
+
+    public function transfer_records_to_logs(\progress_trace $trace, $new_transfer_records) {
         global $DB;
 
         $previous_assessment_code = null;
@@ -76,16 +77,22 @@ class prepare_marks_transfer_service {
         //TODO:: bulk insert grades using array
     }
 
-    private function get_highest_id_from_log_table() {
+
+    private function get_highest_id_from_logs(\progress_trace $trace) {
         global $DB;
 
-        $sql = "SELECT MAX(grade_xfer_queue_id) AS max_grade_xfer_queue_id
+        $sql = "SELECT 
+                    MAX(grade_xfer_queue_id) AS max_grade_xfer_queue_id
                 FROM {marks_transfer_grade_log}";
 
         $latest_record = $DB->get_record_sql($sql);
+        $latest_record = $latest_record ? $latest_record->max_grade_xfer_queue_id : 0;
 
-        return $latest_record ? $latest_record->max_grade_xfer_queue_id : 0;
+        $trace->output("Highest grade ID in log table: $latest_record");
+
+        return $latest_record;
     }
+
 
     private function get_all_constructed_assessment_log_objects() {
         global $DB;

@@ -28,22 +28,23 @@ use local_obu_banner_marks_transfer\services\prepare_marks_transfer_service;
 use progress_trace;
 
 class prepare_marks_transfer_handler {
-    private prepare_marks_transfer_service $prepare_marks_transfer_service;
+    private prepare_marks_transfer_service $service;
 
     private progress_trace $trace;
 
     public function __construct($trace) {
-        $this->prepare_marks_transfer_service = prepare_marks_transfer_service::getInstance();
         $this->trace = $trace;
+        $this->service = prepare_marks_transfer_service::getInstance();
     }
 
     public function handle_prepare_marks_transfer_service() {
-        $new_transfer_records = $this->prepare_marks_transfer_service->get_new_transfer_records();
-        if (count($new_transfer_records) == 0) {
-            $this->trace->output("No new records in grade transfer queue table found.");
-        } else {
-            $this->prepare_marks_transfer_service->prepare_marks_transfer($this->trace, $new_transfer_records);
-            $this->trace->output("Prepared" . count($new_transfer_records) . " new grade transfer queue records.");
+
+        $records = $this->service->get_records_for_transfer($this->trace);
+        if (count($records) == 0) {
+            $this->trace->output("No new records in grade transfer queue table.");
+            return;
         }
+
+        $this->service->transfer_records_to_logs($this->trace, $records);
     }
 }
