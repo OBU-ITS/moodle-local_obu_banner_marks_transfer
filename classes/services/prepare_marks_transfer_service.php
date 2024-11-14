@@ -116,6 +116,8 @@ class prepare_marks_transfer_service {
 
         $trace->output(count($assessment_logs) . " of " . count($unique_assessments) . " assessments found in existing logs.");
 
+        // TODO : Put the assessment logs into a dictionary for easy lookup
+
         return $assessment_logs;
     }
 }
