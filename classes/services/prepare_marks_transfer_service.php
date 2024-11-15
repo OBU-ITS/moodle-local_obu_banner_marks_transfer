@@ -148,8 +148,36 @@ class prepare_marks_transfer_service {
 
 
     private function bulk_store_grade_logs(progress_trace $trace, $grade_logs) : void {
+        global $DB;
 
-        // TODO : bulk store grade log objects
+        $batchSize = 1000;
 
+        for ($i = 0; $i < count($grade_logs); $i += $batchSize) {
+            $batch = array_slice($grade_logs, $i, $batchSize);
+            $fields = array_keys($batch[0]);
+
+            $placeholders = '(' . implode(',', array_fill(0, count($fields), '?')) . ')';
+            $sql = "INSERT INTO {marks_transfer_grade_log} (
+                                          'grade_xfer_queue_id', 
+                                          'marks_xfer_assess_log_id', 
+                                          'student_number', 
+                                          'completed_date', 
+                                          'current_reason', 
+                                          'extension_date', 
+                                          'score', 
+                                          'grade', 
+                                          'comment', 
+                                          'timecreated',
+                                          'lastupdated',
+                                          'status')
+                    VALUES " . implode(',', array_fill(0, count($batch), $placeholders));
+
+            $flatData = [];
+            foreach ($batch as $record) {
+                $flatData = array_merge($flatData, array_values($record));
+            }
+
+            $DB->execute($sql, $flatData);
+        }
     }
 }
