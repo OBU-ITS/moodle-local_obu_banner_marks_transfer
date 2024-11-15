@@ -150,10 +150,11 @@ class prepare_marks_transfer_service {
     private function bulk_store_grade_logs(progress_trace $trace, $grade_logs) : void {
         global $DB;
 
-        $batchSize = 1000;
+        $batch_size = 1000;
+        $batch_runs = 0;
 
-        for ($i = 0; $i < count($grade_logs); $i += $batchSize) {
-            $batch = array_slice($grade_logs, $i, $batchSize);
+        for ($i = 0; $i < count($grade_logs); $i += $batch_size) {
+            $batch = array_slice($grade_logs, $i, $batch_size);
             $fields = array_keys($batch[0]);
 
             $placeholders = '(' . implode(',', array_fill(0, count($fields), '?')) . ')';
@@ -172,12 +173,15 @@ class prepare_marks_transfer_service {
                                           'status')
                     VALUES " . implode(',', array_fill(0, count($batch), $placeholders));
 
-            $flatData = [];
+            $flat_data = [];
             foreach ($batch as $record) {
-                $flatData = array_merge($flatData, array_values($record));
+                $flat_data = array_merge($flat_data, array_values($record));
             }
 
-            $DB->execute($sql, $flatData);
+            $DB->execute($sql, $flat_data);
+            $batch_runs++;
+
+            $trace->output(count($batch) . "grade logs inserted.");
         }
     }
 }
