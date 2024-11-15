@@ -139,11 +139,30 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
+    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : array {
 
-        // TODO : use transfer record to build grade object
+        $student_number = $transfer_record['user'];
+        $student_pidm = $transfer_record['user_udf1'];
+        $assessment = $transfer_record['assessment'];
 
-        return new \stdClass();
+        // TODO : Confirm values set
+        $grade_log_obj = [
+            'grade_xfer_queue_id' => $transfer_record['id'],
+            'marks_xfer_assess_log_id' => $current_assessment_log['id'],
+            'student_number' => $student_pidm,
+            'completed_date' => $transfer_record['submission_date'],
+            'current_reason' => $current_assessment_log['current_reason'],
+            'extension_date' => $transfer_record['extension_date'],
+            'score' => $transfer_record['grade'],
+            'grade' => "",
+            'comment' => $transfer_record['comment'],
+            'timecreated' => time(),
+            'lastupdated' => time(),
+            'status' => 0];
+
+        $trace->output("$student_number ($student_pidm) record for $assessment ready for transfer");
+
+        return $grade_log_obj;
     }
 
 
