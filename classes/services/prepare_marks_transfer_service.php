@@ -62,6 +62,8 @@ class prepare_marks_transfer_service {
 
 
     /**
+     * Create records of grade and assessment logs for transfer
+     *
      * @param progress_trace $trace
      * @param $transfer_records
      * @return void
@@ -167,21 +169,41 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : object {
+    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : array {
 
-        // TODO : use transfer record to build grade object
+        $student_number = $transfer_record['user'];
+        $student_pidm = $transfer_record['user_udf1'];
+        $assessment = $transfer_record['assessment'];
 
-        return new \stdClass();
+        // TODO : Confirm values set
+        $grade_log_obj = [
+            'grade_xfer_queue_id' => $transfer_record['id'],
+            'marks_xfer_assess_log_id' => $current_assessment_log['id'],
+            'student_number' => $student_pidm,
+            'completed_date' => $transfer_record['submission_date'],
+            'current_reason' => $current_assessment_log['current_reason'],
+            'extension_date' => $transfer_record['extension_date'],
+            'score' => $transfer_record['grade'],
+            'grade' => "",
+            'comment' => $transfer_record['comment'],
+            'timecreated' => time(),
+            'lastupdated' => time(),
+            'status' => 0];
+
+        $trace->output("$student_number ($student_pidm) record for $assessment ready for transfer");
+
+        return $grade_log_obj;
     }
 
 
     private function bulk_store_grade_logs(progress_trace $trace, $grade_logs) : void {
         global $DB;
 
-        $batchSize = 1000;
+        $batch_size = 1000;
+        $batch_runs = 0;
 
-        for ($i = 0; $i < count($grade_logs); $i += $batchSize) {
-            $batch = array_slice($grade_logs, $i, $batchSize);
+        for ($i = 0; $i < count($grade_logs); $i += $batch_size) {
+            $batch = array_slice($grade_logs, $i, $batch_size);
             $fields = array_keys($batch[0]);
 
             $placeholders = '(' . implode(',', array_fill(0, count($fields), '?')) . ')';
@@ -200,12 +222,15 @@ class prepare_marks_transfer_service {
                                           'status')
                     VALUES " . implode(',', array_fill(0, count($batch), $placeholders));
 
-            $flatData = [];
+            $flat_data = [];
             foreach ($batch as $record) {
-                $flatData = array_merge($flatData, array_values($record));
+                $flat_data = array_merge($flat_data, array_values($record));
             }
 
-            $DB->execute($sql, $flatData);
+            $DB->execute($sql, $flat_data);
+            $batch_runs++;
+
+            $trace->output(count($batch) . "grade logs inserted.");
         }
     }
 }
