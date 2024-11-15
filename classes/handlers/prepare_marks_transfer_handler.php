@@ -38,7 +38,7 @@ class prepare_marks_transfer_handler {
         $this->service = prepare_marks_transfer_service::getInstance();
     }
 
-    public function handle_prepare_marks_transfer_service() {
+    public function handle_prepare_marks_transfer() {
 
         $records = $this->service->get_records_for_transfer($this->trace);
         if (count($records) == 0) {
