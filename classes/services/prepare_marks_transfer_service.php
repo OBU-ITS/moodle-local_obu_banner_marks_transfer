@@ -51,7 +51,7 @@ class prepare_marks_transfer_service {
         global $DB;
 
         $sql = "SELECT *
-                FROM {grade_transfer_queue}
+                FROM {grade_xfer_queue}
                 WHERE id > :latest_record_id
                 ORDER BY assessment";
 
@@ -97,7 +97,7 @@ class prepare_marks_transfer_service {
 
         $sql = "SELECT 
                     MAX(grade_xfer_queue_id) AS max_grade_xfer_queue_id
-                FROM {marks_transfer_grade_log}";
+                FROM {marks_xfer_grade_log}";
 
         $latest_record = $DB->get_record_sql($sql);
         $latest_record = $latest_record ? $latest_record->max_grade_xfer_queue_id : 0;
@@ -115,7 +115,7 @@ class prepare_marks_transfer_service {
         $unique_assessments_values = array_values($unique_assessments);
 
         $sql = "SELECT * 
-                FROM {marks_transfer_assess_log} 
+                FROM {marks_xfer_assess_log} 
                 WHERE assessment IN (" . implode(',', array_fill(0, count($unique_assessments_values), '?')) . ")";
 
         $records = $DB->get_records_sql($sql, $unique_assessments_values);
