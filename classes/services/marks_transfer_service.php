@@ -25,6 +25,7 @@ namespace local_obu_banner_marks_transfer\services;
 
 defined('MOODLE_INTERNAL') || die();
 
+use progress_trace;
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
@@ -44,18 +45,19 @@ class marks_transfer_service {
      *
      * @return array An array of unprocessed extension records.
      */
-    public function get_pending_records() {
+    public function get_pending_records() : array {
         global $DB;
-        //TODO:: Retrieve everything from marks_transfer_grade_log table where the status is "pending" or "failed"
+
+        // TODO : Retrieve everything from marks_transfer_grade_log table where the status is "pending" or "failed"
         $sql = "";
 
         return $DB->get_records_sql($sql);
     }
 
-    public function marks_transfer(\progress_trace $trace, $untransferred_grade_records) {
+    public function run_marks_transfer(progress_trace $trace, $untransferred_grade_records) : void {
         global $DB;
         foreach ($untransferred_grade_records as $untransferred_grade_record) {
-            //TODO:: attempt to send ethos message here return the results as part of array of successes and failures
+            // TODO : attempt to send ethos message here return the results as part of array of successes and failures
         }
     }
 

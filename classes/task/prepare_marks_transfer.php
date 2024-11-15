@@ -26,21 +26,24 @@ namespace local_obu_banner_marks_transfer\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die();
 
+use local_obu_banner_marks_transfer\handlers\prepare_marks_transfer_handler;
+use text_progress_trace;
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
 class prepare_marks_transfer extends \core\task\scheduled_task {
+
     public function get_name() : string {
         return "Prepare marks transfer task";
     }
 
     public function execute() {
-        $trace = new \text_progress_trace();
 
-        $handler = new \local_obu_banner_marks_transfer\handlers\prepare_marks_transfer_handler($trace);
-        $handler->handle_prepare_marks_transfer_service();
+        $trace = new text_progress_trace();
+        $handler = new prepare_marks_transfer_handler($trace);
+
+        $handler->handle_prepare_marks_transfer();
     }
 }

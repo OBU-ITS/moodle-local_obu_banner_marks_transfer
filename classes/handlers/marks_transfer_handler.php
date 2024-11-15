@@ -28,24 +28,24 @@ use local_obu_banner_marks_transfer\services\marks_transfer_service;
 use progress_trace;
 
 class marks_transfer_handler {
-    private marks_transfer_service $marks_transfer_service;
 
+    private marks_transfer_service $service;
     private progress_trace $trace;
 
     public function __construct($trace) {
-        $this->marks_transfer_service = marks_transfer_service::getInstance();
+
         $this->trace = $trace;
+        $this->service = marks_transfer_service::getInstance();
     }
 
     public function handle_marks_transfer_service() {
-        $untransferred_grade_records = $this->marks_transfer_service->get_pending_records();
-        if (count($untransferred_grade_records) == 0) {
+
+        $records = $this->service->get_pending_records();
+        if (count($records) == 0) {
             $this->trace->output("No pending/failed records in log tables found.");
-        } else {
-            $this->marks_transfer_service->marks_transfer($this->trace, $untransferred_grade_records);
-            //TODO:: make function above return a result stuff that has transferred and stuff that has failed and report outcomes with trace
-            //TODO:: log result in history table (locallib function)
-            $this->trace->output("Transferred" . count($untransferred_grade_records) . " grade transfer records.");
+            return;
         }
+
+        $this->service->run_marks_transfer($this->trace, $records);
     }
 }

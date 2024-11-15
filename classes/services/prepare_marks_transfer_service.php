@@ -76,8 +76,7 @@ class prepare_marks_transfer_service {
 
         foreach ($transfer_records as $transfer_record) {
             if($transfer_record->assessment == "") {
-                // TODO : Should never happen - what should we do if it does?!
-                continue;
+                throw new \moodle_exception("Empty assessment field in grade_xfer_queue");
             }
 
             if($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
@@ -169,19 +168,18 @@ class prepare_marks_transfer_service {
     }
 
 
-    private function create_grade_log(progress_trace $trace, $current_assessment_log, $transfer_record) : array {
+    private function create_grade_log(progress_trace $trace, $assessment_log, $transfer_record) : array {
 
         $student_number = $transfer_record['user'];
-        $student_pidm = $transfer_record['user_udf1'];
         $assessment = $transfer_record['assessment'];
 
         // TODO : Confirm values set
         $grade_log_obj = [
             'grade_xfer_queue_id' => $transfer_record['id'],
-            'marks_xfer_assess_log_id' => $current_assessment_log['id'],
-            'student_number' => $student_pidm,
+            'marks_xfer_assess_log_id' => $assessment_log['id'],
+            'student_number' => $student_number,
             'completed_date' => $transfer_record['submission_date'],
-            'current_reason' => $current_assessment_log['current_reason'],
+            'current_reason' => $assessment_log['current_reason'],
             'extension_date' => $transfer_record['extension_date'],
             'score' => $transfer_record['grade'],
             'grade' => "",
@@ -190,7 +188,7 @@ class prepare_marks_transfer_service {
             'lastupdated' => time(),
             'status' => 0];
 
-        $trace->output("$student_number ($student_pidm) record for $assessment ready for transfer");
+        $trace->output("$student_number record for $assessment ready for transfer");
 
         return $grade_log_obj;
     }
