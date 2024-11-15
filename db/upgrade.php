@@ -32,5 +32,17 @@ function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
 
     $result = true;
 
+    if ($oldversion < 2024111404) {
+        // Define the table and the field.
+        $table = new xmldb_table('marks_xfer_assess_log');
+        $field = new xmldb_field('reason_code', XMLDB_TYPE_TEXT, '2', null, XMLDB_NOTNULL, false, null, 'access_restriction_group_idnum');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2024111404, 'local', 'obu_banner_marks_transfer');
+    }
+
     return $result;
 }

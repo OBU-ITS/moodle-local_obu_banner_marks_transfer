@@ -132,10 +132,38 @@ class prepare_marks_transfer_service {
 
 
     private function create_and_store_assessment_log(progress_trace $trace, $transfer_record) : object {
+        global $DB;
 
-        // TODO : use transfer record to build assessment object and store
+        $deconstructed_idnum = local_obu_banner_marks_transfer_deconstruct_group_idnum($trace ,$transfer_record->assessment);
 
-        return new \stdClass();
+        $assessment_log_object = new \stdClass();
+        $assessment_log_object->access_restriction_group_idnum = $transfer_record->assessment;
+        $assessment_log_object->reason_code = $deconstructed_idnum->current_reason;
+        if ($deconstructed_idnum->current_reason == 'UR' || $deconstructed_idnum->current_reason == 'RE') {
+            $assessment_log_object->assessment_type = 'reassessment';
+        } else {
+            $assessment_log_object->assessment_type = 'assessment';
+        }
+
+        $assessment_log_object->crn = $deconstructed_idnum->crn;
+        $assessment_log_object->term = $deconstructed_idnum->term_code;
+        $assessment_log_object->component_id = $transfer_record;
+        $assessment_log_object->timecreated = time();
+        $assessment_log_object->lastupdated = time();
+
+        try {
+            $DB->insert_record('marks_xfer_assess_log', $assessment_log_object);
+            $trace->output("Successfully inserted assessment log for grade transfer record ID: {$transfer_record->id}");
+        } catch (\dml_exception $e) {
+            $trace->output("Error inserting assessment log for grade transfer record ID: {$transfer_record->id}");
+            $trace->output("DB Error: " . $e->getMessage());
+        } catch (\Exception $e) {
+            $trace->output("Error inserting assessment log for grade transfer record ID: {$transfer_record->id}");
+            $trace->output("Unexpected error: " . $e->getMessage());
+            throw $e;
+        }
+
+        return $assessment_log_object;
     }
 
 

@@ -18,6 +18,7 @@
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="access_restriction_group_idnum" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Copy of 'assessment' field from CoSector's table"/>
+                <FIELD NAME="reason_code" TYPE="text" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="Reason code for grades in this assessment (defines assessment type)"/>
                 <FIELD NAME="assessment_type" TYPE="text" LENGTH="12" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment or Reassessment"/>
                 <FIELD NAME="crn" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Banner course CRN"/>
                 <FIELD NAME="term" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Banner term code"/>

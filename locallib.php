@@ -33,26 +33,26 @@ defined('MOODLE_INTERNAL') || die();
 
 //TODO:: function to store records in history table
 
-function local_obu_banner_marks_transfer_deconstruct_group_name (\progress_trace $trace, $group_name) {
-    $pattern = "/^(?P<courseAcademicYear>\d{4})\.(?P<courseSubjectCodeAndNumber>.+?)_"
-        . "(?P<coursePartTerm>.+?)_(?P<courseRunNumber>\d+)_"
-        . "(?P<termCode>\d{6})_(?P<crn>\d+)_"
-        . "(?P<courseworkName>.+?)-(?P<courseworkSequenceNumber>\d+)_"
-        . "(?P<componentId>\d+)_"
-        . "(?P<currentReason>.{1,2})$/";
+function local_obu_banner_marks_transfer_deconstruct_group_idnum (\progress_trace $trace, $group_name) {
+    $pattern = "/^(?P<course_academic_year>\d{4})\.(?P<course_subject_code_and_number>.+?)_"
+        . "(?P<course_part_term>.+?)_(?P<course_run_number>\d+)_"
+        . "(?P<term_code>\d{6})_(?P<crn>\d+)_"
+        . "(?P<coursework_name>.+?)-(?P<coursework_sequence_number>\d+)_"
+        . "(?P<component_id>\d+)_"
+        . "(?P<current_reason>.{1,2})$/";
 
     if (preg_match($pattern, $group_name, $matches)) {
         return (object) [
-            'courseAcademicYear' => $matches['courseAcademicYear'],
-            'courseSubjectCodeAndNumber' => $matches['courseSubjectCodeAndNumber'],
-            'coursePartTerm' => $matches['coursePartTerm'],
-            'courseRunNumber' => $matches['courseRunNumber'],
-            'termCode' => $matches['termCode'],
+            'course_academic_year' => $matches['course_academic_year'],
+            'course_subject_code_and_number' => $matches['course_subject_code_and_number'],
+            'course_part_term' => $matches['course_part_term'],
+            'course_run_number' => $matches['course_run_number'],
+            'term_code' => $matches['term_code'],
             'crn' => $matches['crn'],
-            'courseworkName' => $matches['courseworkName'],
-            'courseworkSequenceNumber' => $matches['courseworkSequenceNumber'],
-            'componentId' => $matches['componentId'],
-            'currentReason' => $matches['currentReason'],
+            'coursework_name' => $matches['coursework_name'],
+            'coursework_sequence_number' => $matches['coursework_sequence_number'],
+            'component_id' => $matches['component_id'],
+            'current_reason' => $matches['current_reason'],
         ];
     } else {
         $trace->output("Group name format is invalid.");
