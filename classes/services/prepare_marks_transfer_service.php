@@ -62,6 +62,8 @@ class prepare_marks_transfer_service {
 
 
     /**
+     * Create records of grade and assessment logs for transfer
+     *
      * @param progress_trace $trace
      * @param $transfer_records
      * @return void
