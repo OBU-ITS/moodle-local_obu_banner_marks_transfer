@@ -38,7 +38,7 @@ class marks_transfer_handler {
         $this->service = marks_transfer_service::getInstance();
     }
 
-    public function handle_marks_transfer_service() {
+    public function handle_marks_transfer() {
 
         $records = $this->service->get_pending_records();
         if (count($records) == 0) {

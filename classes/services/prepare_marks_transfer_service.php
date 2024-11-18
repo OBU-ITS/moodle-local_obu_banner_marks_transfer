@@ -152,17 +152,8 @@ class prepare_marks_transfer_service {
         $assessment_log_object->timecreated = time();
         $assessment_log_object->lastupdated = time();
 
-        try {
-            $DB->insert_record('marks_xfer_assess_log', $assessment_log_object);
-            $trace->output("Successfully inserted assessment log for grade transfer record ID: {$transfer_record->id}");
-        } catch (\dml_exception $e) {
-            $trace->output("Error inserting assessment log for grade transfer record ID: {$transfer_record->id}");
-            $trace->output("DB Error: " . $e->getMessage());
-        } catch (\Exception $e) {
-            $trace->output("Error inserting assessment log for grade transfer record ID: {$transfer_record->id}");
-            $trace->output("Unexpected error: " . $e->getMessage());
-            throw $e;
-        }
+        $assessment_log_object->id = $DB->insert_record('marks_xfer_assess_log', $assessment_log_object);
+        $trace->output("Successfully inserted assessment log for: {$transfer_record->assessment}");
 
         return $assessment_log_object;
     }
@@ -173,13 +164,12 @@ class prepare_marks_transfer_service {
         $student_number = $transfer_record['user'];
         $assessment = $transfer_record['assessment'];
 
-        // TODO : Confirm values set
         $grade_log_obj = [
             'grade_xfer_queue_id' => $transfer_record['id'],
             'marks_xfer_assess_log_id' => $assessment_log['id'],
             'student_number' => $student_number,
             'completed_date' => $transfer_record['submission_date'],
-            'current_reason' => $assessment_log['current_reason'],
+            'current_reason' => $assessment_log['reason_code'],
             'extension_date' => $transfer_record['extension_date'],
             'score' => $transfer_record['grade'],
             'grade' => "",
@@ -205,7 +195,7 @@ class prepare_marks_transfer_service {
             $fields = array_keys($batch[0]);
 
             $placeholders = '(' . implode(',', array_fill(0, count($fields), '?')) . ')';
-            $sql = "INSERT INTO {marks_transfer_grade_log} (
+            $sql = "INSERT INTO {marks_xfer_grade_log} (
                                           'grade_xfer_queue_id', 
                                           'marks_xfer_assess_log_id', 
                                           'student_number', 

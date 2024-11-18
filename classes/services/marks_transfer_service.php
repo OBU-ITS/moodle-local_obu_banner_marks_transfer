@@ -48,17 +48,61 @@ class marks_transfer_service {
     public function get_pending_records() : array {
         global $DB;
 
-        // TODO : Retrieve everything from marks_transfer_grade_log table where the status is "pending" or "failed"
-        $sql = "";
+        $sql = "SELECT gl.*
+                FROM {marks_xfer_grade_log} gl
+                JOIN {marks_xfer_assess_log} al ON gl.marks_xfer_assess_log_id = al.id
+                JOIN {marks_xfer_status} s ON gl.status = s.id
+                WHERE s.status <> 'Success'
+                ";
 
         return $DB->get_records_sql($sql);
     }
 
     public function run_marks_transfer(progress_trace $trace, $untransferred_grade_records) : void {
-        global $DB;
+
+
         foreach ($untransferred_grade_records as $untransferred_grade_record) {
             // TODO : attempt to send ethos message here return the results as part of array of successes and failures
         }
     }
 
+    private function send_marks(progress_trace $trace, $assessment_log, $grade_logs) {
+
+    }
+
+    /**
+     * This is a temp function to represent the ETHOS API call:
+     * **/
+    public function submit_marks(progress_trace $trace, $assessment_log, $grade_logs) {
+        $response = new \stdClass();
+
+        $codes = [
+            [200, "Success"],
+            [400, "Bad Request"],
+            [401, "Unauthorized"],
+            [403, "Permission Denied"],
+            [404, "Resource not found"],
+            [500, "Server error, unexpected configuration or data"]];
+
+        $ethos_response_idx = array_rand($codes);
+
+        // NOTE: response type and properties are all temporary - feel free to change and alter
+        $response->code = $codes[$ethos_response_idx][0];
+        $response->message = $codes[$ethos_response_idx][1];
+        $response->successList = array();
+        $response->failureList = array();
+        $trace->output("Response: {$response->code} - {$response->message}");
+
+        if($response->code == 200) {
+            foreach($grade_logs as $grade_log) {
+                $random_percentage = mt_rand(1, 100);
+                if($random_percentage > 70) {
+                    $response->successList[] = $grade_log;
+                }
+                else {
+                    $response->failureList[] = $grade_log;
+                }
+            }
+        }
+    }
 }

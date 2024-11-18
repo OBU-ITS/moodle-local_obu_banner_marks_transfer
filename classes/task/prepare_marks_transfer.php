@@ -30,12 +30,14 @@ defined('MOODLE_INTERNAL') || die();
 
 use local_obu_banner_marks_transfer\handlers\prepare_marks_transfer_handler;
 use text_progress_trace;
+
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
 class prepare_marks_transfer extends \core\task\scheduled_task {
 
     public function get_name() : string {
+
         return "Prepare marks transfer task";
     }
 

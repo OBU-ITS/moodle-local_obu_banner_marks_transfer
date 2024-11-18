@@ -29,18 +29,23 @@ namespace local_obu_banner_marks_transfer\task;
 
 defined('MOODLE_INTERNAL') || die();
 
+use local_obu_banner_marks_transfer\handlers\marks_transfer_handler;
+use text_progress_trace;
+
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
 class marks_transfer extends \core\task\scheduled_task {
     public function get_name() : string {
+
         return "Marks transfer task";
     }
 
     public function execute() {
-        $trace = new \text_progress_trace();
 
-        $handler = new \local_obu_banner_marks_transfer\handlers\marks_transfer_handler($trace);
-        $handler->handle_marks_transfer_service();
+        $trace = new text_progress_trace();
+        $handler = new marks_transfer_handler($trace);
+
+        $handler->handle_marks_transfer();
     }
 }
