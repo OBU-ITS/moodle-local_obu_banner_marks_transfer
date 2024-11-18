@@ -5,7 +5,10 @@
 
 namespace local_obu_banner_marks_transfer\test;
 
-require_once(__DIR__ . '/../../../config.php'); // Adjust the path as necessary
+use local_obu_banner_marks_transfer\handlers\prepare_marks_transfer_handler;
+
+require_once(__DIR__ . '/../../../config.php');
+require_once(__DIR__ . '/../classes/handlers/prepare_marks_transfer_handler.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -14,3 +17,8 @@ if (!is_siteadmin()) {
     die();
 }
 
+$trace = new \html_progress_trace();
+$handler = new prepare_marks_transfer_handler($trace);
+
+$handler->handle_prepare_marks_transfer();
+$trace->finished();
