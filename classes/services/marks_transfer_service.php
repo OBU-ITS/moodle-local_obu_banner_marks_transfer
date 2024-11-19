@@ -58,22 +58,41 @@ class marks_transfer_service {
         return $DB->get_records_sql($sql);
     }
 
-    public function run_marks_transfer(progress_trace $trace, $untransferred_grade_records) : void {
+    public function run_marks_transfer(progress_trace $trace, $grade_logs) : void {
+        $assessment_logs = $this->get_associated_assessment_logs($trace, $grade_logs);
+        $assessment_with_grade_logs = $this->group_grades_into_assessments($trace, $assessment_logs, $grade_logs);
 
-
-        foreach ($untransferred_grade_records as $untransferred_grade_record) {
-            // TODO : attempt to send ethos message here return the results as part of array of successes and failures
+        foreach ($assessment_with_grade_logs as $assessment_with_grade_log) {
+            // TODO : Send marks
+            // $this->send_marks($trace, $assessment_with_grade_log);
         }
     }
 
-    private function send_marks(progress_trace $trace, $assessment_log, $grade_logs) {
+    private function get_associated_assessment_logs(progress_trace $trace, $grade_logs) : array {
+        $assessment_logs = array();
 
+        // TODO : Get all relevant assessmentl logs
+
+        return $assessment_logs;
+    }
+
+    private function group_grades_into_assessments(progress_trace $trace, $assessment_logs, $grade_logs) : array {
+
+        // TODO : Group grades into Assessment logs
+
+        return $assessment_logs;
+    }
+
+    private function send_marks(progress_trace $trace, $assessment_log) {
+        $response = $this->submit_marks($trace, $assessment_log);
+
+        // TODO : Handle response codes /record transaction etc
     }
 
     /**
      * This is a temp function to represent the ETHOS API call:
      * **/
-    public function submit_marks(progress_trace $trace, $assessment_log, $grade_logs) {
+    public function submit_marks(progress_trace $trace, $assessment_log) {
         $response = new \stdClass();
 
         $codes = [
@@ -94,7 +113,7 @@ class marks_transfer_service {
         $trace->output("Response: {$response->code} - {$response->message}");
 
         if($response->code == 200) {
-            foreach($grade_logs as $grade_log) {
+            foreach($assessment_log->grade_logs as $grade_log) {
                 $random_percentage = mt_rand(1, 100);
                 if($random_percentage > 70) {
                     $response->successList[] = $grade_log;
@@ -104,5 +123,7 @@ class marks_transfer_service {
                 }
             }
         }
+
+        return $response;
     }
 }
