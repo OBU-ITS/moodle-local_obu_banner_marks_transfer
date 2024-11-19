@@ -39,7 +39,7 @@
                 <FIELD NAME="student_number" TYPE="text" LENGTH="8" NOTNULL="true" SEQUENCE="false" COMMENT="Banner Id"/>
                 <FIELD NAME="completed_date" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submission date"/>
                 <FIELD NAME="current_reason" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment group suffix"/>
-                <FIELD NAME="extension_date" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
+                <FIELD NAME="extension_date" TYPE="text" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT=""/>
                 <FIELD NAME="score" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT=""/>
                 <FIELD NAME="grade" TYPE="text" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT=""/>
                 <FIELD NAME="comment" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="New grade comment"/>
