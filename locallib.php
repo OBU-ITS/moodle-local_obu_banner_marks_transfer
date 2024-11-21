@@ -25,10 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-//TODO:: function to build assessment log record
-
-//TODO:: function to build grade transfer log record
-
 //TODO:: function to make ethos calls
 
 //TODO:: function to store records in history table
@@ -59,3 +55,17 @@ function local_obu_banner_marks_transfer_deconstruct_group_idnum (\progress_trac
     }
 }
 
+function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_logs, $response) {
+    global $DB;
+
+    $assessment_log_history_object = new \stdClass();
+    $assessment_log_history_object->marks_xfer_assess_log_id = $assessment_with_grade_logs->marks_xfer_assess_log_id;
+    $assessment_log_history_object->response_code = $response->code;
+    $assessment_log_history_object->resonse_name = $response->name;
+    $assessment_log_history_object->error_message = $response->message;
+    $assessment_log_history_object->timecreated = time();
+
+    $DB->insert_record('marks_xfer_asses_history', $assessment_log_history_object);
+
+    //TODO:: loop through grade logs create as objects, store in grade history table as bulk insert
+}

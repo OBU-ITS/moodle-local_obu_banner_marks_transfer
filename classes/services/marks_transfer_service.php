@@ -45,7 +45,7 @@ class marks_transfer_service {
      *
      * @return array An array of unprocessed extension records.
      */
-    public function get_pending_records() : array {
+    public function get_unsent_records() : array {
         global $DB;
 
         $sql = "SELECT gl.*
@@ -53,6 +53,7 @@ class marks_transfer_service {
                 JOIN {marks_xfer_assess_log} al ON gl.marks_xfer_assess_log_id = al.id
                 JOIN {marks_xfer_status} s ON gl.status = s.id
                 WHERE s.status <> 'Success'
+                ORDER BY gl.marks_xfer_assess_log_id
                 ";
 
         return $DB->get_records_sql($sql);
@@ -60,33 +61,74 @@ class marks_transfer_service {
 
     public function run_marks_transfer(progress_trace $trace, $grade_logs) : void {
         $assessment_logs = $this->get_associated_assessment_logs($trace, $grade_logs);
-        $assessment_with_grade_logs = $this->group_grades_into_assessments($trace, $assessment_logs, $grade_logs);
+        $assessments_with_grades_logs = $this->group_grades_into_assessments($trace, $assessment_logs, $grade_logs);
 
-        foreach ($assessment_with_grade_logs as $assessment_with_grade_log) {
-            // TODO : Send marks
-            // $this->send_marks($trace, $assessment_with_grade_log);
+        foreach ($assessments_with_grades_logs as $assessment_with_grade_logs) {
+            $trace->output("Sending grade logs for assessment: " . $assessment_with_grade_logs->access_restriction_group_idnum);
+            $this->send_marks($trace, $assessment_with_grade_logs);
         }
     }
 
     private function get_associated_assessment_logs(progress_trace $trace, $grade_logs) : array {
-        $assessment_logs = array();
+        global $DB;
 
-        // TODO : Get all relevant assessmentl logs
+        $assessment_logs = [];
+        $previous_grade_log_assessment_id = '';
 
-        return $assessment_logs;
+        foreach ($grade_logs as $grade_log) {
+            if ($grade_log->marks_xfer_assess_log_id != $previous_grade_log_assessment_id) {
+                $assessment_logs = $grade_log->marks_xfer_assess_log_id;
+                $previous_grade_log_assessment_id = $grade_log->marks_xfer_assess_log_id;
+            }
+        }
+
+        list($in_sql, $params) = $DB->get_in_or_equal($assessment_logs);
+
+        $sql = "SELECT * 
+            FROM {marks_xfer_assess_log} 
+            WHERE id $in_sql";
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     private function group_grades_into_assessments(progress_trace $trace, $assessment_logs, $grade_logs) : array {
 
-        // TODO : Group grades into Assessment logs
+        $grouped_assessments = [];
 
-        return $assessment_logs;
+        foreach ($assessment_logs as $assessment_log) {
+            $assessment_log->grade_logs = [];
+            $grouped_assessments[$assessment_log->id] = $assessment_log;
+        }
+
+        foreach ($grade_logs as $grade_log) {
+            $assessment_id = $grade_log->marks_xfer_assess_log_id;
+
+            if (isset($grouped_assessments[$assessment_id])) {
+                $grouped_assessments[$assessment_id]->grade_logs[] = $grade_log;
+            } else {
+                $trace->output("Warning: Grade log with ID {$grade_log->id} has no matching assessment log.");
+            }
+        }
+
+        return $grouped_assessments;
     }
 
-    private function send_marks(progress_trace $trace, $assessment_log) {
-        $response = $this->submit_marks($trace, $assessment_log);
+    private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
+        $response = $this->submit_marks($trace, $assessment_with_grade_logs);
 
-        // TODO : Handle response codes /record transaction etc
+        if ($response->code == 400 || $response->code == 403 || $response->code == 404) {
+            foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
+                $grade_log->status = 3;
+                $grade_log->last_updated = time();
+            }
+            store_logs_in_history($trace, $assessment_with_grade_logs, $response);
+        } elseif ($response->code == 401 || $response->code == 500) {
+            //TODO:: retry with exponential backoff
+        } elseif ($response->code == 200) {
+            //TODO:: Success
+        } else {
+            //TODO:: whats going on here then?
+        }
     }
 
     /**
@@ -96,18 +138,19 @@ class marks_transfer_service {
         $response = new \stdClass();
 
         $codes = [
-            [200, "Success"],
-            [400, "Bad Request"],
-            [401, "Unauthorized"],
-            [403, "Permission Denied"],
-            [404, "Resource not found"],
-            [500, "Server error, unexpected configuration or data"]];
+            [200, "Success", null],
+            [400, "Bad Request", "This means the data was not in the correct format due to xyz"],
+            [401, "Unauthorized", null],
+            [403, "Permission Denied", "Permission denied for API call due to xyz"],
+            [404, "Resource not found", "Could not find the thingie that needs inserting"],
+            [500, "Server error, unexpected configuration or data", null]];
 
         $ethos_response_idx = array_rand($codes);
 
         // NOTE: response type and properties are all temporary - feel free to change and alter
         $response->code = $codes[$ethos_response_idx][0];
-        $response->message = $codes[$ethos_response_idx][1];
+        $response->name = $codes[$ethos_response_idx][1];
+        $response->message = $codes[$ethos_response_idx[2]];
         $response->successList = array();
         $response->failureList = array();
         $trace->output("Response: {$response->code} - {$response->message}");

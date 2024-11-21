@@ -40,7 +40,7 @@ class marks_transfer_handler {
 
     public function handle_marks_transfer() {
 
-        $records = $this->service->get_pending_records();
+        $records = $this->service->get_unsent_records();
         if (count($records) == 0) {
             $this->trace->output("No pending/failed records in log tables found.");
             return;
