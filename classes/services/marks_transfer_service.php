@@ -50,7 +50,6 @@ class marks_transfer_service {
 
         $sql = "SELECT gl.*
                 FROM {marks_xfer_grade_log} gl
-                JOIN {marks_xfer_assess_log} al ON gl.marks_xfer_assess_log_id = al.id
                 JOIN {marks_xfer_status} s ON gl.status = s.id
                 WHERE s.status <> 'Success'
                 ORDER BY gl.marks_xfer_assess_log_id
@@ -76,12 +75,15 @@ class marks_transfer_service {
         $previous_grade_log_assessment_id = '';
 
         foreach ($grade_logs as $grade_log) {
+            $trace->output("Getting associated assessment log for grade log id: " . $grade_log->grade_xfer_queue_id);
             if ($grade_log->marks_xfer_assess_log_id != $previous_grade_log_assessment_id) {
-                $assessment_logs = $grade_log->marks_xfer_assess_log_id;
+                $trace->output("New grade log assessment id retrieved : " . $grade_log->marks_xfer_assess_log_id);
+                $assessment_logs[] = $grade_log->marks_xfer_assess_log_id;
                 $previous_grade_log_assessment_id = $grade_log->marks_xfer_assess_log_id;
             }
         }
 
+        $assessment_logs = array_unique($assessment_logs);
         list($in_sql, $params) = $DB->get_in_or_equal($assessment_logs);
 
         $sql = "SELECT * 
@@ -104,6 +106,7 @@ class marks_transfer_service {
             $assessment_id = $grade_log->marks_xfer_assess_log_id;
 
             if (isset($grouped_assessments[$assessment_id])) {
+                $trace->output("Adding grade log with ID {$grade_log->id} to assessment log with ID {$assessment_id}.");
                 $grouped_assessments[$assessment_id]->grade_logs[] = $grade_log;
             } else {
                 $trace->output("Warning: Grade log with ID {$grade_log->id} has no matching assessment log.");
