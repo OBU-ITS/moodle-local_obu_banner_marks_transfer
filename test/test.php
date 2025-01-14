@@ -5,6 +5,7 @@
 
 namespace local_obu_banner_marks_transfer\test;
 
+use local_obu_banner_marks_transfer\handlers\marks_transfer_handler;
 use local_obu_banner_marks_transfer\handlers\prepare_marks_transfer_handler;
 
 require_once(__DIR__ . '/../../../config.php');
@@ -18,7 +19,11 @@ if (!is_siteadmin()) {
 }
 
 $trace = new \html_progress_trace();
-$handler = new prepare_marks_transfer_handler($trace);
 
-$handler->handle_prepare_marks_transfer();
+$prepareHandler = new prepare_marks_transfer_handler($trace);
+$prepareHandler->handle_prepare_marks_transfer();
+
+$executeHandler = new marks_transfer_handler($trace);
+$executeHandler->handle_marks_transfer();
+
 $trace->finished();

@@ -165,7 +165,7 @@ class prepare_marks_transfer_service {
 
         $grade_log_obj = [
             'grade_xfer_queue_id' => (int)$transfer_record->id,
-            'marks_xfer_assess_log_id' => (int)$assessment_log->id,
+            'marks_xfer_assess_log_id' => $assessment_log->access_restriction_group_idnum,
             'student_number' => $student_number,
             'completed_date' => $transfer_record->submission_date,
             'current_reason' => $assessment_log->reason_code,

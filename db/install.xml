@@ -35,7 +35,7 @@
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="grade_xfer_queue_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding record from CoSector's grade_xfer_queue table"/>
-                <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Id of corresponding assessment record from marks_xfer_assess_log table"/>
+                <FIELD NAME="marks_xfer_assess_log_id" TYPE="text" LENGTH="50" NOTNULL="true" SEQUENCE="false" COMMENT="access_restriction_group_idnum of corresponding assessment record from marks_xfer_assess_log table"/>
                 <FIELD NAME="student_number" TYPE="text" LENGTH="8" NOTNULL="true" SEQUENCE="false" COMMENT="Banner Id"/>
                 <FIELD NAME="completed_date" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submission date"/>
                 <FIELD NAME="current_reason" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Assessment group suffix"/>
@@ -50,7 +50,6 @@
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
                 <KEY NAME="grade_xfer_queue_id" TYPE="foreign" FIELDS="grade_xfer_queue_id" REFTABLE="grade_xfer_queue" REFFIELDS="id"/>
-                <KEY NAME="marks_xfer_assess_log_id" TYPE="foreign" FIELDS="marks_xfer_assess_log_id" REFTABLE="marks_xfer_assess_log" REFFIELDS="id"/>
                 <KEY NAME="status" TYPE="foreign" FIELDS="status" REFTABLE="marks_xfer_status" REFFIELDS="id"/>
             </KEYS>
         </TABLE>

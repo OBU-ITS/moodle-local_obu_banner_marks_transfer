@@ -88,7 +88,7 @@ class marks_transfer_service {
 
         $sql = "SELECT * 
             FROM {marks_xfer_assess_log} 
-            WHERE id $in_sql";
+            WHERE access_restriction_group_idnum $in_sql";
 
         return $DB->get_records_sql($sql, $params);
     }
@@ -96,23 +96,26 @@ class marks_transfer_service {
     private function group_grades_into_assessments(progress_trace $trace, $assessment_logs, $grade_logs) : array {
 
         $grouped_assessments = [];
-
         foreach ($assessment_logs as $assessment_log) {
             $assessment_log->grade_logs = [];
-            $grouped_assessments[$assessment_log->id] = $assessment_log;
+            $grouped_assessments[$assessment_log->access_restriction_group_idnum] = $assessment_log;
         }
 
         foreach ($grade_logs as $grade_log) {
             $assessment_id = $grade_log->marks_xfer_assess_log_id;
 
             if (isset($grouped_assessments[$assessment_id])) {
-                $trace->output("Adding grade log with ID {$grade_log->id} to assessment log with ID {$assessment_id}.");
+                $trace->output("Adding grade log with assessment ID {$grade_log->marks_xfer_assess_log_id} to assessment log with ID {$grouped_assessments[$assessment_id]->access_restriction_group_idnum}.");
                 $grouped_assessments[$assessment_id]->grade_logs[] = $grade_log;
             } else {
-                $trace->output("Warning: Grade log with ID {$grade_log->id} has no matching assessment log.");
+                $trace->output("Warning: Grade log with ID {$grade_log->grade_xfer_queue_id} has no matching assessment log.");
             }
         }
 
+        echo ("Assessment logs: " . var_dump($assessment_logs));
+        echo ("Grade logs: " . var_dump($grade_logs));
+        var_dump($grouped_assessments);
+        die();
         return $grouped_assessments;
     }
 
