@@ -106,7 +106,9 @@ class marks_transfer_service {
 
             if (isset($grouped_assessments[$assessment_id])) {
                 $trace->output("Adding grade log with assessment ID {$grade_log->marks_xfer_assess_log_id} to assessment log with ID {$grouped_assessments[$assessment_id]->access_restriction_group_idnum}.");
-                $grouped_assessments[$assessment_id]->grade_logs[] = $grade_log;
+                $trace->output("Before appending: " . print_r($grouped_assessments[$assessment_id]->grade_logs, true));
+                $grouped_assessments[$assessment_id]->grade_logs[$grade_log->id] = $grade_log;
+                $trace->output("After appending: " . print_r($grouped_assessments[$assessment_id]->grade_logs, true));
             } else {
                 $trace->output("Warning: Grade log with ID {$grade_log->grade_xfer_queue_id} has no matching assessment log.");
             }
