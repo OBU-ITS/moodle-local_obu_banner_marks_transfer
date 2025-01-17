@@ -113,11 +113,7 @@ class marks_transfer_service {
                 $trace->output("Warning: Grade log with ID {$grade_log->grade_xfer_queue_id} has no matching assessment log.");
             }
         }
-
-        echo ("Assessment logs: " . var_dump($assessment_logs));
-        echo ("Grade logs: " . var_dump($grade_logs));
-        var_dump($grouped_assessments);
-        die();
+        
         return $grouped_assessments;
     }
 
