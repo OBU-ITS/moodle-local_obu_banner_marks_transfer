@@ -30,5 +30,5 @@ $plugin->maturity = MATURITY_STABLE;
 
 $plugin->release = 'v0.0.1';
 $plugin->dependencies = array(
-
+    'enrol_ethos' => 2025011701,
 );
