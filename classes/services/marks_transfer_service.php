@@ -25,7 +25,14 @@ namespace local_obu_banner_marks_transfer\services;
 
 defined('MOODLE_INTERNAL') || die();
 
+use gradereport_singleview\local\screen\grade;
+use GuzzleHttp\Exception\RequestException;
+use mod_h5pactivity\local\attempt;
+use mysql_xdevapi\Exception;
 use progress_trace;
+use enrol_ethos\ethosclient\entities\ethos_student_gradable_components_subcomponents_info;
+use enrol_ethos\ethosclient\entities\ethos_student_gradable_components_subcomponents_info_grade;
+use enrol_ethos\ethosclient\providers\ethos_student_gradable_components_subcomponents_provider;
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
@@ -113,64 +120,129 @@ class marks_transfer_service {
                 $trace->output("Warning: Grade log with ID {$grade_log->grade_xfer_queue_id} has no matching assessment log.");
             }
         }
-        
+
         return $grouped_assessments;
     }
 
     private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
-        $response = $this->submit_marks($trace, $assessment_with_grade_logs);
 
-        if ($response->code == 400 || $response->code == 403 || $response->code == 404) {
+        $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
+        $provider = ethos_student_gradable_components_subcomponents_provider::getInstance();
+        try {
+            $response_object = $provider->put($marks_transfer_ethos_object);
+            //TODO:: LOG SUCCESS
+        } catch (RequestException $e) {
+            $status_code = $e->getResponse()->getStatusCode();
+            switch ($status_code) {
+                case 403:
+                case 404:
+                    //TODO:: LOG FAILURE
+                    break;
+
+                case 500:
+                    $max_retries = 3;
+                    $base_delay = 30;
+
+                    for ($attempt = 1; $attempt <= $max_retries; $attempt++) {
+                        try {
+                            $trace->output("Attempt $attempt: Retrying after 500 Internal Server Error.");
+                            $response_object = $provider->put($marks_transfer_ethos_object);
+                            //TODO:: LOG SUCCESS
+                        } catch (RequestException $retry_exception) {
+                            $retry_status_code = $retry_exception->getResponse()->getStatusCode();
+                            if ($retry_status_code === 500 && $attempt < $max_retries) {
+                                $delay = $base_delay * (2 ** ($attempt - 1));
+                                $trace->output("Retrying in $delay seconds...");
+                                sleep($delay);
+                                continue;
+                            } elseif ($retry_status_code === 500 && $attempt === $max_retries) {
+                                $trace->output("Max retries reached. 500 error persists: " . $retry_exception->getMessage());
+                                //TODO::LOG FAILURE
+                            } else {
+                                $trace->output("Error (HTTP $retry_status_code) encountered during retry: " . $retry_exception->getMessage());
+                                //TODO::LOG FAILURE
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        die();
+
+        if ($response->code == 403 || $response->code == 404) {
             foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
                 $grade_log->status = 3;
                 $grade_log->last_updated = time();
             }
             store_logs_in_history($trace, $assessment_with_grade_logs, $response);
-        } elseif ($response->code == 401 || $response->code == 500) {
-            //TODO:: retry with exponential backoff
-        } elseif ($response->code == 200) {
-            //TODO:: Success
-        } else {
-            //TODO:: whats going on here then?
         }
     }
 
-    /**
-     * This is a temp function to represent the ETHOS API call:
-     * **/
-    public function submit_marks(progress_trace $trace, $assessment_log) {
-        $response = new \stdClass();
+    private function prepare_marks_transfer_ethos_object(progress_trace $trace, $assessment_with_grade_logs): ethos_student_gradable_components_subcomponents_info {
+        $deconstructed_idnum = local_obu_banner_marks_transfer_deconstruct_group_idnum($trace ,$assessment_with_grade_logs->access_restriction_group_idnum);
 
-        $codes = [
-            [200, "Success", null],
-            [400, "Bad Request", "This means the data was not in the correct format due to xyz"],
-            [401, "Unauthorized", null],
-            [403, "Permission Denied", "Permission denied for API call due to xyz"],
-            [404, "Resource not found", "Could not find the thingie that needs inserting"],
-            [500, "Server error, unexpected configuration or data", null]];
+        $info = new ethos_student_gradable_components_subcomponents_info();
+        $info->assessmentType = $assessment_with_grade_logs->assessment_type;
+        $info->crn = $deconstructed_idnum->crn;
+        $info->term = $deconstructed_idnum->term_code;
+        $info->componentId = $deconstructed_idnum->component_id;
 
-        $ethos_response_idx = array_rand($codes);
-
-        // NOTE: response type and properties are all temporary - feel free to change and alter
-        $response->code = $codes[$ethos_response_idx][0];
-        $response->name = $codes[$ethos_response_idx][1];
-        $response->message = $codes[$ethos_response_idx[2]];
-        $response->successList = array();
-        $response->failureList = array();
-        $trace->output("Response: {$response->code} - {$response->message}");
-
-        if($response->code == 200) {
-            foreach($assessment_log->grade_logs as $grade_log) {
-                $random_percentage = mt_rand(1, 100);
-                if($random_percentage > 70) {
-                    $response->successList[] = $grade_log;
-                }
-                else {
-                    $response->failureList[] = $grade_log;
-                }
+        foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
+            $grade = new ethos_student_gradable_components_subcomponents_info_grade();
+            $grade->bannerId = "something"; //TODO:: What is this supposed to be?
+            $grade->completedDate = $grade_log->completed_date;
+            $grade->currentReason = $grade_log->current_reason;
+            if ($grade_log->extension_date) {
+                $grade->extensionDate = $grade_log->extension_date;
+            } else {
+                $grade->extensionDate = "";
             }
+            $grade->score = $grade_log->score;
+            $grade->grade = $grade_log->grade;
+            $grade->comment = $grade_log->comment;
+
+            $info->setGrade($grade);
         }
 
-        return $response;
+        return $info;
     }
+
+//    /**
+//     * This is a temp function to represent the ETHOS API call:
+//     * **/
+//    public function submit_marks(progress_trace $trace, $assessment_log) {
+//        $response = new \stdClass();
+//
+//        $codes = [
+//            [200, "Success", null],
+//            [400, "Bad Request", "This means the data was not in the correct format due to xyz"],
+//            [401, "Unauthorized", null],
+//            [403, "Permission Denied", "Permission denied for API call due to xyz"],
+//            [404, "Resource not found", "Could not find the thingie that needs inserting"],
+//            [500, "Server error, unexpected configuration or data", null]];
+//
+//        $ethos_response_idx = array_rand($codes);
+//
+//        // NOTE: response type and properties are all temporary - feel free to change and alter
+//        $response->code = $codes[$ethos_response_idx][0];
+//        $response->name = $codes[$ethos_response_idx][1];
+//        $response->message = $codes[$ethos_response_idx[2]];
+//        $response->successList = array();
+//        $response->failureList = array();
+//        $trace->output("Response: {$response->code} - {$response->message}");
+//
+//        if($response->code == 200) {
+//            foreach($assessment_log->grade_logs as $grade_log) {
+//                $random_percentage = mt_rand(1, 100);
+//                if($random_percentage > 70) {
+//                    $response->successList[] = $grade_log;
+//                }
+//                else {
+//                    $response->failureList[] = $grade_log;
+//                }
+//            }
+//        }
+//
+//        return $response;
+//    }
 }
