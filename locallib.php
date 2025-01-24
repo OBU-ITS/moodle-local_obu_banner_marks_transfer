@@ -25,9 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-//TODO:: function to make ethos calls
-
-//TODO:: function to store records in history table
+use GuzzleHttp\Exception\RequestException;
 
 function local_obu_banner_marks_transfer_deconstruct_group_idnum (\progress_trace $trace, $group_name) {
     $pattern = "/^(?P<course_academic_year>\d{4})\.(?P<course_subject_code_and_number>.+?)_"
@@ -55,17 +53,52 @@ function local_obu_banner_marks_transfer_deconstruct_group_idnum (\progress_trac
     }
 }
 
-function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_logs, $response) {
+function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_logs, ?RequestException $exception, $response_object = null) {
     global $DB;
 
     $assessment_log_history_object = new \stdClass();
-    $assessment_log_history_object->marks_xfer_assess_log_id = $assessment_with_grade_logs->marks_xfer_assess_log_id;
-    $assessment_log_history_object->response_code = $response->code;
-    $assessment_log_history_object->resonse_name = $response->name;
-    $assessment_log_history_object->error_message = $response->message;
+    $assessment_log_history_object->marks_xfer_assess_log_id = (int) $assessment_with_grade_logs->id;
+    if ($exception) {
+        $assessment_log_history_object->response_code = $exception->getCode();
+        $assessment_log_history_object->response_name = $exception->getResponse()->getReasonPhrase();
+        $assessment_log_history_object->error_message = $exception->getMessage();
+    } elseif ($response_object){ //TODO:: check partial success
+        $assessment_log_history_object->response_code = $exception->getCode();
+        $assessment_log_history_object->response_name = get_class($exception);
+        $assessment_log_history_object->error_message = $exception->getMessage();
+    }
     $assessment_log_history_object->timecreated = time();
 
-    $DB->insert_record('marks_xfer_asses_history', $assessment_log_history_object);
+    ob_start();
+    var_dump($assessment_log_history_object);
+    $assessment_log_object_dump = ob_get_clean();
+    $trace->output("Created assessment log history object: " . $assessment_log_object_dump);
 
-    //TODO:: loop through grade logs create as objects, store in grade history table as bulk insert
+    $assessment_log_history_id = $DB->insert_record('marks_xfer_asses_history', $assessment_log_history_object);
+    $trace->output("Inserted assessment log history object with ID: " . $assessment_log_history_id);
+
+    $grade_log_history_objects = [];
+    foreach ($assessment_with_grade_logs->grade_logs as $grade_log){
+        $grade_log_history_object = new \stdClass();
+        $grade_log_history_object->marks_xfer_grade_log_id = $grade_log->id;
+        $grade_log_history_object->marks_xfer_assess_history_id = $assessment_log_history_id;
+        if ($exception){
+            $grade_log_history_object->xfer_message = $exception->getMessage();
+            $grade_log_history_object->status = 3;
+        } elseif ($response_object) { //TODO:: check partial success
+            $grade_log_history_object->xfer_message = null;
+            $grade_log_history_object->status = null;
+        }
+        $grade_log_history_object->timecreated = time();
+
+        $grade_log_history_objects[] = $grade_log_history_object;
+    }
+
+    ob_start();
+    var_dump($grade_log_history_objects);
+    $grade_log_object_dump = ob_get_clean();
+    $trace->output("Created grade log history objects: " . $grade_log_object_dump);
+
+    $DB->insert_records('marks_xfer_grade_history', $grade_log_history_objects);
+    $trace->output("Inserted " . count($grade_log_history_objects) . " grade log history objects successfully.");
 }

@@ -60,7 +60,7 @@
                 <FIELD NAME="marks_xfer_assess_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_assess_log"/>
                 <FIELD NAME="response_code" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="API response code"/>
                 <FIELD NAME="response_name" TYPE="text" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="API response name"/>
-                <FIELD NAME="error_message" TYPE="text" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Error message for non 200 responses"/>
+                <FIELD NAME="error_message" TYPE="text" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="Error message for non 200 responses"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
             </FIELDS>
             <KEYS>
@@ -74,7 +74,7 @@
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="marks_xfer_grade_log_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_grade_log"/>
                 <FIELD NAME="marks_xfer_assess_history_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_asses_history"/>
-                <FIELD NAME="xfer_message" TYPE="text" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Message for grade API call"/>
+                <FIELD NAME="xfer_message" TYPE="text" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="Message for grade API call"/>
                 <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to marks_xfer_status"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Record created"/>
             </FIELDS>

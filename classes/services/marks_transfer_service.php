@@ -125,18 +125,20 @@ class marks_transfer_service {
     }
 
     private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
-
         $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
         $provider = ethos_student_gradable_components_subcomponents_provider::getInstance();
         try {
             $response_object = $provider->put($marks_transfer_ethos_object);
+            store_logs_in_history($trace, $assessment_with_grade_logs, null, $response_object);
             //TODO:: LOG SUCCESS
-        } catch (RequestException $e) {
-            $status_code = $e->getResponse()->getStatusCode();
+        } catch (RequestException $exception) {
+            $status_code = $exception->getResponse()->getStatusCode();
             switch ($status_code) {
+                case 400:
+                case 401:
                 case 403:
                 case 404:
-                    //TODO:: LOG FAILURE
+                    store_logs_in_history($trace, $assessment_with_grade_logs, $exception);
                     break;
 
                 case 500:
@@ -147,34 +149,26 @@ class marks_transfer_service {
                         try {
                             $trace->output("Attempt $attempt: Retrying after 500 Internal Server Error.");
                             $response_object = $provider->put($marks_transfer_ethos_object);
+                            store_logs_in_history($trace, $assessment_with_grade_logs, null, $response_object);
                             //TODO:: LOG SUCCESS
                         } catch (RequestException $retry_exception) {
                             $retry_status_code = $retry_exception->getResponse()->getStatusCode();
                             if ($retry_status_code === 500 && $attempt < $max_retries) {
                                 $delay = $base_delay * (2 ** ($attempt - 1));
                                 $trace->output("Retrying in $delay seconds...");
-                                sleep($delay);
+                                //sleep($delay);
                                 continue;
                             } elseif ($retry_status_code === 500 && $attempt === $max_retries) {
                                 $trace->output("Max retries reached. 500 error persists: " . $retry_exception->getMessage());
-                                //TODO::LOG FAILURE
+                                store_logs_in_history($trace, $assessment_with_grade_logs, $retry_exception);
                             } else {
                                 $trace->output("Error (HTTP $retry_status_code) encountered during retry: " . $retry_exception->getMessage());
-                                //TODO::LOG FAILURE
+                                store_logs_in_history($trace, $assessment_with_grade_logs, $retry_exception);
                             }
                         }
                     }
                     break;
             }
-        }
-        die();
-
-        if ($response->code == 403 || $response->code == 404) {
-            foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
-                $grade_log->status = 3;
-                $grade_log->last_updated = time();
-            }
-            store_logs_in_history($trace, $assessment_with_grade_logs, $response);
         }
     }
 
@@ -189,7 +183,7 @@ class marks_transfer_service {
 
         foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
             $grade = new ethos_student_gradable_components_subcomponents_info_grade();
-            $grade->bannerId = "something"; //TODO:: What is this supposed to be?
+            $grade->bannerId = $grade_log->student_number;
             $grade->completedDate = $grade_log->completed_date;
             $grade->currentReason = $grade_log->current_reason;
             if ($grade_log->extension_date) {
