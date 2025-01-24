@@ -62,10 +62,14 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
         $assessment_log_history_object->response_code = $exception->getCode();
         $assessment_log_history_object->response_name = $exception->getResponse()->getReasonPhrase();
         $assessment_log_history_object->error_message = $exception->getMessage();
-    } elseif ($response_object){ //TODO:: check partial success
-        $assessment_log_history_object->response_code = $exception->getCode();
-        $assessment_log_history_object->response_name = get_class($exception);
-        $assessment_log_history_object->error_message = $exception->getMessage();
+    } else if ($response_object) {
+        $assessment_log_history_object->response_code = 200;
+        if (empty($response_object->failureList)) {
+            $assessment_log_history_object->response_name = "Success";
+        } else {
+            $assessment_log_history_object->response_name = "Partial success";
+        }
+        $assessment_log_history_object->error_message = null;
     }
     $assessment_log_history_object->timecreated = time();
 
@@ -78,20 +82,37 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
     $trace->output("Inserted assessment log history object with ID: " . $assessment_log_history_id);
 
     $grade_log_history_objects = [];
-    foreach ($assessment_with_grade_logs->grade_logs as $grade_log){
+    $grade_log_status_updates = [];
+    foreach ($assessment_with_grade_logs->grade_logs as $grade_log) { //TODO:: update grade log status field
         $grade_log_history_object = new \stdClass();
         $grade_log_history_object->marks_xfer_grade_log_id = $grade_log->id;
         $grade_log_history_object->marks_xfer_assess_history_id = $assessment_log_history_id;
-        if ($exception){
+        if ($exception) {
             $grade_log_history_object->xfer_message = $exception->getMessage();
             $grade_log_history_object->status = 3;
-        } elseif ($response_object) { //TODO:: check partial success
-            $grade_log_history_object->xfer_message = null;
-            $grade_log_history_object->status = null;
+        } elseif ($response_object) {
+            if (empty($response_object->failureList)) {
+                $grade_log_history_object->xfer_message = "Successful transfer";
+                $grade_log_history_object->status = 2;
+            } else {
+                $is_failed = check_failure_list($response_object->failureList, $grade_log);
+                if ($is_failed) {
+                    $grade_log_history_object->xfer_message = $is_failed->failureMessage ?? "Unknown error";
+                    $grade_log_history_object->status = 3; // Failed
+                } else {
+                    $grade_log_history_object->xfer_message = "Successful transfer";
+                    $grade_log_history_object->status = 2; // Success
+                }
+            }
         }
         $grade_log_history_object->timecreated = time();
 
         $grade_log_history_objects[] = $grade_log_history_object;
+        $grade_log_status_updates[] = [
+            'id' => $grade_log->id,
+            'status' => $grade_log_history_object->status
+        ];
+        update_grade_log_statuses($grade_log_status_updates);
     }
 
     ob_start();
@@ -101,4 +122,36 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
 
     $DB->insert_records('marks_xfer_grade_history', $grade_log_history_objects);
     $trace->output("Inserted " . count($grade_log_history_objects) . " grade log history objects successfully.");
+}
+
+function check_failure_list(array $failureList, $grade_log) {
+    foreach ($failureList as $failure) {
+        if (isset($failure->bannerId) && $failure->bannerId === $grade_log->student_number) {
+            return $failure;
+        }
+    }
+    return false;
+}
+
+function update_grade_log_statuses(array $status_updates) {
+    global $DB;
+
+    if (empty($status_updates)) {
+        return;
+    }
+
+    $case_statement = "CASE id ";
+    $ids = [];
+
+    foreach ($status_updates as $update) {
+        $case_statement .= "WHEN {$update['id']} THEN {$update['status']} ";
+        $ids[] = $update['id'];
+    }
+
+    $case_statement .= "END";
+
+    $id_list = implode(',', $ids);
+
+    $sql = "UPDATE {marks_xfer_grade_log} SET status = $case_statement WHERE id IN ($id_list)";
+    $DB->execute($sql);
 }

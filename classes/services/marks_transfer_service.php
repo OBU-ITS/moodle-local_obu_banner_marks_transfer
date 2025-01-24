@@ -130,7 +130,6 @@ class marks_transfer_service {
         try {
             $response_object = $provider->put($marks_transfer_ethos_object);
             store_logs_in_history($trace, $assessment_with_grade_logs, null, $response_object);
-            //TODO:: LOG SUCCESS
         } catch (RequestException $exception) {
             $status_code = $exception->getResponse()->getStatusCode();
             switch ($status_code) {
@@ -150,13 +149,12 @@ class marks_transfer_service {
                             $trace->output("Attempt $attempt: Retrying after 500 Internal Server Error.");
                             $response_object = $provider->put($marks_transfer_ethos_object);
                             store_logs_in_history($trace, $assessment_with_grade_logs, null, $response_object);
-                            //TODO:: LOG SUCCESS
                         } catch (RequestException $retry_exception) {
                             $retry_status_code = $retry_exception->getResponse()->getStatusCode();
                             if ($retry_status_code === 500 && $attempt < $max_retries) {
                                 $delay = $base_delay * (2 ** ($attempt - 1));
                                 $trace->output("Retrying in $delay seconds...");
-                                //sleep($delay);
+                                //sleep($delay); //TODO::remove comment when done testing
                                 continue;
                             } elseif ($retry_status_code === 500 && $attempt === $max_retries) {
                                 $trace->output("Max retries reached. 500 error persists: " . $retry_exception->getMessage());
