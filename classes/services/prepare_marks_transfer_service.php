@@ -42,16 +42,16 @@ class prepare_marks_transfer_service {
 
 
     /**
-     * Retrieves all new grade transfer queue records from the database.
+     * Retrieves all new local_grade_transfer_obu records from the database.
      *
      * @param progress_trace $trace
-     * @return array An array of new grade_transfer_queue records.
+     * @return array An array of new local_grade_transfer_obu records.
      */
     public function get_records_for_transfer(progress_trace $trace) {
         global $DB;
 
         $sql = "SELECT *
-                FROM {grade_transfer_queue}
+                FROM {local_grade_transfer_obu}
                 WHERE id > :latest_record_id
                 ORDER BY assessment";
 
@@ -75,7 +75,7 @@ class prepare_marks_transfer_service {
 
         foreach ($transfer_records as $transfer_record) {
             if($transfer_record->assessment == "") {
-                throw new \moodle_exception("Empty assessment field in grade_transfer_queue");
+                throw new \moodle_exception("Empty assessment field in local_grade_transfer_obu");
             }
 
             if($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
