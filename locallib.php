@@ -83,7 +83,7 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
 
     $grade_log_history_objects = [];
     $grade_log_status_updates = [];
-    foreach ($assessment_with_grade_logs->grade_logs as $grade_log) { //TODO:: update grade log status field
+    foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
         $grade_log_history_object = new \stdClass();
         $grade_log_history_object->marks_xfer_grade_log_id = $grade_log->id;
         $grade_log_history_object->marks_xfer_assess_history_id = $assessment_log_history_id;

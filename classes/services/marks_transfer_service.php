@@ -154,7 +154,7 @@ class marks_transfer_service {
                             if ($retry_status_code === 500 && $attempt < $max_retries) {
                                 $delay = $base_delay * (2 ** ($attempt - 1));
                                 $trace->output("Retrying in $delay seconds...");
-                                //sleep($delay); //TODO::remove comment when done testing
+                                sleep($delay);
                                 continue;
                             } elseif ($retry_status_code === 500 && $attempt === $max_retries) {
                                 $trace->output("Max retries reached. 500 error persists: " . $retry_exception->getMessage());
