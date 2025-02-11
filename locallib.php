@@ -49,7 +49,8 @@ function local_obu_banner_marks_transfer_deconstruct_group_idnum (\progress_trac
             'current_reason' => $matches['current_reason'],
         ];
     } else {
-        $trace->output("Group name format is invalid.");
+        $trace->output("Group name format is invalid: {$group_name}");
+        return false;
     }
 }
 

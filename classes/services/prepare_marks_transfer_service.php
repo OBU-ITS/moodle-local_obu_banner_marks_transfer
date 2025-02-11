@@ -25,7 +25,10 @@ namespace local_obu_banner_marks_transfer\services;
 
 defined('MOODLE_INTERNAL') || die();
 
+use Horde\Socket\Client\Exception;
 use progress_trace;
+use function PHPUnit\Framework\throwException;
+
 global $CFG;
 require_once($CFG->dirroot . '/local/obu_banner_marks_transfer/locallib.php');
 
@@ -78,10 +81,17 @@ class prepare_marks_transfer_service {
                 throw new \moodle_exception("Empty assessment field in local_grade_transfer_obu");
             }
 
-            if($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
-                $current_assessment_log = array_key_exists($transfer_record->assessment, $existing_assessment_logs)
-                    ? $existing_assessment_logs[$transfer_record->assessment]
-                    : $this->create_and_store_assessment_log($trace, $transfer_record);
+            if ($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
+                if (array_key_exists($transfer_record->assessment, $existing_assessment_logs)) {
+                    $current_assessment_log = $existing_assessment_logs[$transfer_record->assessment];
+                } else {
+                    try {
+                        $current_assessment_log = $this->create_and_store_assessment_log($trace, $transfer_record);
+                    } catch (\Exception $e) {
+                        $trace->output("Failed to create assessment log for {$transfer_record->assessment}: " . $e->getMessage());
+                        continue;
+                    }
+                }
             }
 
             $grade_log = $this->create_grade_log($trace, $current_assessment_log, $transfer_record);
@@ -131,10 +141,17 @@ class prepare_marks_transfer_service {
     }
 
 
+    /**
+     * @throws \Exception
+     */
     private function create_and_store_assessment_log(progress_trace $trace, $transfer_record) : object {
         global $DB;
 
         $deconstructed_idnum = local_obu_banner_marks_transfer_deconstruct_group_idnum($trace ,$transfer_record->assessment);
+
+        if (!$deconstructed_idnum) {
+            throw new \Exception("Failed to deconstruct assessment ID: {$transfer_record->assessment}");
+        }
 
         $assessment_log_object = new \stdClass();
         $assessment_log_object->access_restriction_group_idnum = $transfer_record->assessment;

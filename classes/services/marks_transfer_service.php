@@ -125,7 +125,13 @@ class marks_transfer_service {
     }
 
     private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
-        $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
+        try {
+            $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
+        } catch (\Exception $e) {
+            $trace->output("Failed to create marks transfer ethos object for {$assessment_with_grade_logs->access_restriction_group_idnum}: " . $e->getMessage());
+            return;
+        }
+
         $provider = ethos_student_gradable_components_subcomponents_provider::getInstance();
         try {
             $response_object = $provider->put($marks_transfer_ethos_object);
@@ -170,8 +176,15 @@ class marks_transfer_service {
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     private function prepare_marks_transfer_ethos_object(progress_trace $trace, $assessment_with_grade_logs): ethos_student_gradable_components_subcomponents_info {
         $deconstructed_idnum = local_obu_banner_marks_transfer_deconstruct_group_idnum($trace ,$assessment_with_grade_logs->access_restriction_group_idnum);
+
+        if (!$deconstructed_idnum) {
+            throw new \Exception("Failed to deconstruct assessment ID: {$assessment_with_grade_logs->access_restriction_group_idnum}");
+        }
 
         $info = new ethos_student_gradable_components_subcomponents_info();
         $info->assessmentType = $assessment_with_grade_logs->assessment_type;
@@ -198,43 +211,4 @@ class marks_transfer_service {
 
         return $info;
     }
-
-//    /**
-//     * This is a temp function to represent the ETHOS API call:
-//     * **/
-//    public function submit_marks(progress_trace $trace, $assessment_log) {
-//        $response = new \stdClass();
-//
-//        $codes = [
-//            [200, "Success", null],
-//            [400, "Bad Request", "This means the data was not in the correct format due to xyz"],
-//            [401, "Unauthorized", null],
-//            [403, "Permission Denied", "Permission denied for API call due to xyz"],
-//            [404, "Resource not found", "Could not find the thingie that needs inserting"],
-//            [500, "Server error, unexpected configuration or data", null]];
-//
-//        $ethos_response_idx = array_rand($codes);
-//
-//        // NOTE: response type and properties are all temporary - feel free to change and alter
-//        $response->code = $codes[$ethos_response_idx][0];
-//        $response->name = $codes[$ethos_response_idx][1];
-//        $response->message = $codes[$ethos_response_idx[2]];
-//        $response->successList = array();
-//        $response->failureList = array();
-//        $trace->output("Response: {$response->code} - {$response->message}");
-//
-//        if($response->code == 200) {
-//            foreach($assessment_log->grade_logs as $grade_log) {
-//                $random_percentage = mt_rand(1, 100);
-//                if($random_percentage > 70) {
-//                    $response->successList[] = $grade_log;
-//                }
-//                else {
-//                    $response->failureList[] = $grade_log;
-//                }
-//            }
-//        }
-//
-//        return $response;
-//    }
 }
