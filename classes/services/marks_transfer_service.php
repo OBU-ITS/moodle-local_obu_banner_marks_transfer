@@ -195,17 +195,15 @@ class marks_transfer_service {
         foreach ($assessment_with_grade_logs->grade_logs as $grade_log) {
             $grade = new ethos_student_gradable_components_subcomponents_info_grade();
             $grade->bannerId = $grade_log->student_number;
-            $grade->completedDate = $grade_log->completed_date;
             $grade->currentReason = $grade_log->current_reason;
+            $grade->comment = $grade_log->comment;
+            $grade->score = $grade_log->score;
+            $grade->completedDate = $grade_log->completed_date;
             if ($grade_log->extension_date) {
                 $grade->extensionDate = $grade_log->extension_date;
             } else {
                 $grade->extensionDate = "";
             }
-            $grade->score = $grade_log->score;
-            $grade->grade = $grade_log->grade;
-            $grade->comment = $grade_log->comment;
-
             $info->setGrade($grade);
         }
 
