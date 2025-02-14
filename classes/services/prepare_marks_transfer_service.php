@@ -77,25 +77,25 @@ class prepare_marks_transfer_service {
         $grade_logs = [];
 
         foreach ($transfer_records as $transfer_record) {
-            if($transfer_record->assessment == "") {
-                throw new \moodle_exception("Empty assessment field in local_grade_transfer_obu");
-            }
+            try {
+                if($transfer_record->assessment == "") {
+                    throw new \Exception("Empty assessment field in local_grade_transfer_obu");
+                }
 
-            if ($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
-                if (array_key_exists($transfer_record->assessment, $existing_assessment_logs)) {
-                    $current_assessment_log = $existing_assessment_logs[$transfer_record->assessment];
-                } else {
-                    try {
+                if ($current_assessment_log == null || $transfer_record->assessment != $current_assessment_log->access_restriction_group_idnum) {
+                    if (array_key_exists($transfer_record->assessment, $existing_assessment_logs)) {
+                        $current_assessment_log = $existing_assessment_logs[$transfer_record->assessment];
+                    } else {
                         $current_assessment_log = $this->create_and_store_assessment_log($trace, $transfer_record);
-                    } catch (\Exception $e) {
-                        $trace->output("Failed to create assessment log for {$transfer_record->assessment}: " . $e->getMessage());
-                        continue;
                     }
                 }
-            }
 
-            $grade_log = $this->create_grade_log($trace, $current_assessment_log, $transfer_record);
-            $grade_logs[] = $grade_log;
+                $grade_log = $this->create_grade_log($trace, $current_assessment_log, $transfer_record);
+                $grade_logs[] = $grade_log;
+            } catch (\Exception $e) {
+                $trace->output("Error processing record: " . $e->getMessage());
+                continue;
+            }
         }
 
         $this->bulk_store_grade_logs($trace, $grade_logs);
