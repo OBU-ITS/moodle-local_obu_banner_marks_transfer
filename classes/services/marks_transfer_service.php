@@ -127,6 +127,7 @@ class marks_transfer_service {
     private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
         try {
             $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
+            var_dump($marks_transfer_ethos_object);
         } catch (\Exception $e) {
             $trace->output("Failed to create marks transfer ethos object for {$assessment_with_grade_logs->access_restriction_group_idnum}: " . $e->getMessage());
             return;
@@ -172,6 +173,10 @@ class marks_transfer_service {
                         }
                     }
                     break;
+
+                default:
+                    $trace->output("Exception caught: " . $exception->getResponse()->getStatusCode() . "\n" . "Error message: " . $exception->getMessage());
+                    break;
             }
         }
     }
@@ -198,11 +203,13 @@ class marks_transfer_service {
             $grade->currentReason = $grade_log->current_reason;
             $grade->comment = $grade_log->comment;
             $grade->score = $grade_log->score;
-            $grade->completedDate = $grade_log->completed_date;
-            if ($grade_log->extension_date) {
-                $grade->extensionDate = $grade_log->extension_date;
+            if ($grade_log->completed_date) {
+                $grade->completedDate = convert_date_for_ethos($trace, $grade_log->completed_date);
             } else {
-                $grade->extensionDate = "";
+                $grade->completedDate = "";
+            }
+            if ($grade_log->extension_date) {
+                $grade->extensionDate = convert_date_for_ethos($trace, $grade_log->extension_date);
             }
             $info->setGrade($grade);
         }
