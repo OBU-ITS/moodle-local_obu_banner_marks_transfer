@@ -220,6 +220,7 @@ class marks_transfer_service {
             if ($grade_log->extension_date) {
                 $grade->extensionDate = convert_date_for_ethos($trace, $grade_log->extension_date);
             }
+            
             $info->setGrade($grade);
         }
 
