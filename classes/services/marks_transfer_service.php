@@ -196,9 +196,28 @@ class marks_transfer_service {
             $grade = new ethos_student_gradable_components_subcomponents_info_grade();
             $grade->bannerId = $grade_log->student_number;
             $grade->currentReason = $grade_log->current_reason;
+<<<<<<< Updated upstream
             $grade->comment = $grade_log->comment;
             $grade->score = $grade_log->score;
             $grade->completedDate = $grade_log->completed_date;
+=======
+            $grade->comment = $grade_log->comment ?? "";
+            $grade->score = $grade_log->score ?? 0;
+            $grade->completedDate = $grade_log->completed_date
+                ? convert_date_for_ethos($trace, $grade_log->completed_date)
+                : date("Y-m-d");
+
+            if (!$grade_log->completed_date && !$grade_log->score) {
+                if (empty($grade_log->comment)) {
+                    $grade->comment = "Not Attempted";
+                }
+            }
+
+            if (!empty($grade_log->score) && $grade->comment === "Not Attempted") {
+                $grade->comment = "";
+            }
+
+>>>>>>> Stashed changes
             if ($grade_log->extension_date) {
                 $grade->extensionDate = $grade_log->extension_date;
             } else {
