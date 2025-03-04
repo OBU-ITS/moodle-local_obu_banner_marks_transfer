@@ -127,6 +127,7 @@ class marks_transfer_service {
     private function send_marks(progress_trace $trace, $assessment_with_grade_logs) {
         try {
             $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
+            var_dump($marks_transfer_ethos_object);
         } catch (\Exception $e) {
             $trace->output("Failed to create marks transfer ethos object for {$assessment_with_grade_logs->access_restriction_group_idnum}: " . $e->getMessage());
             return;
@@ -172,6 +173,10 @@ class marks_transfer_service {
                         }
                     }
                     break;
+
+                default:
+                    $trace->output("Exception caught: " . $exception->getResponse()->getStatusCode() . "\n" . "Error message: " . $exception->getMessage());
+                    break;
             }
         }
     }
@@ -211,7 +216,11 @@ class marks_transfer_service {
             if (!empty($grade_log->score) && $grade->comment === "Not Attempted") {
                 $grade->comment = "";
             }
-            
+
+            if ($grade_log->extension_date) {
+                $grade->extensionDate = convert_date_for_ethos($trace, $grade_log->extension_date);
+            }
+
             $info->setGrade($grade);
         }
 

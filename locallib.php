@@ -67,6 +67,8 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
         $assessment_log_history_object->response_code = 200;
         if (empty($response_object->failureList)) {
             $assessment_log_history_object->response_name = "Success";
+        } else if (empty($response_object->successList)) {
+            $assessment_log_history_object->response_name = "Failure";
         } else {
             $assessment_log_history_object->response_name = "Partial success";
         }
@@ -155,4 +157,15 @@ function update_grade_log_statuses(array $status_updates) {
 
     $sql = "UPDATE {marks_xfer_grade_log} SET status = $case_statement WHERE id IN ($id_list)";
     $DB->execute($sql);
+}
+
+function convert_date_for_ethos(\progress_trace $trace, $original_date) {
+    $date_object = DateTime::createFromFormat("l, d F Y, H:i", $original_date);
+
+    if ($date_object) {
+        return $date_object->format("Y-m-d");
+    } else {
+        $trace->output("Invalid date format.");
+        return null;
+    }
 }
