@@ -231,10 +231,14 @@ class prepare_marks_transfer_service {
                 $flat_data = array_merge($flat_data, array_values($record));
             }
             try {
-            $DB->execute($sql, $flat_data);} catch (\Exception $e){
+            $DB->execute($sql, $flat_data);
+            } catch (\Exception $e) {
                 $trace->output("Error inserting grade logs: " . $e->getMessage());
                 $trace->output("SQL Query: " . $sql);
                 $trace->output("SQL Data: " . json_encode($flat_data));
+                error_log("Database error: " . $e->getMessage());
+                error_log("SQL Query: " . $sql);
+                error_log("SQL Data: " . json_encode($flat_data));
             }
 
             $batch_runs++;
