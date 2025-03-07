@@ -44,5 +44,26 @@ function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 2024111404, 'local', 'obu_banner_marks_transfer');
     }
 
+    if ($oldversion < 2025030702) {
+        $table = new xmldb_table('marks_xfer_grade_log');
+
+        $field_completed_date = new xmldb_field('completed_date', XMLDB_TYPE_TEXT, '10', null, null, null, null, 'student_number');
+        if ($dbman->field_exists($table, $field_completed_date)) {
+            $dbman->change_field_notnull($table, $field_completed_date);
+        }
+
+        $field_score = new xmldb_field('score', XMLDB_TYPE_TEXT, '10', null, null, null, null, 'extension_date');
+        if ($dbman->field_exists($table, $field_score)) {
+            $dbman->change_field_notnull($table, $field_score);
+        }
+
+        $field_comment = new xmldb_field('comment', XMLDB_TYPE_TEXT, '10', null, null, null, null, 'grade');
+        if ($dbman->field_exists($table, $field_comment)) {
+            $dbman->change_field_notnull($table, $field_comment);
+        }
+
+        upgrade_plugin_savepoint(true, 2025030702, 'local', 'obu_banner_marks_transfer');
+    }
+
     return $result;
 }
