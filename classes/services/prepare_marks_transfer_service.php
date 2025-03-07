@@ -232,6 +232,7 @@ class prepare_marks_transfer_service {
             }
             try {
             $DB->execute($sql, $flat_data);
+            $trace->output(count($batch) . "grade logs inserted.");
             } catch (\Exception $e) {
                 $trace->output("Error inserting grade logs: " . $e->getMessage());
                 $trace->output("SQL Query: " . $sql);
@@ -242,8 +243,6 @@ class prepare_marks_transfer_service {
             }
 
             $batch_runs++;
-
-            $trace->output(count($batch) . "grade logs inserted.");
         }
     }
 }
