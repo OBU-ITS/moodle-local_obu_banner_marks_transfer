@@ -92,7 +92,8 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
         $grade_log_history_object->marks_xfer_grade_log_id = $grade_log->id;
         $grade_log_history_object->marks_xfer_assess_history_id = $assessment_log_history_id;
         if ($exception) {
-            $grade_log_history_object->xfer_message = $exception->getMessage();
+//            $grade_log_history_object->xfer_message = $exception->getMessage();
+            $grade_log_history_object->xfer_message = $exception->getResponse()->getBody()->getContents();
             $grade_log_history_object->status = 3;
         } elseif ($response_object) {
             if (empty($response_object->failureList)) {
