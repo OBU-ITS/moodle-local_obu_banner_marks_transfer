@@ -160,7 +160,7 @@ function update_grade_log_statuses(array $status_updates) {
 }
 
 function convert_date_for_ethos(\progress_trace $trace, $original_date) {
-    $date_object = DateTime::createFromFormat("l, d F Y, H:i", $original_date);
+    $date_object = DateTime::createFromFormat("l, j F Y, g:i A", $original_date);
 
     if ($date_object) {
         return $date_object->format("Y-m-d");
