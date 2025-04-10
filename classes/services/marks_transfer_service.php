@@ -201,8 +201,8 @@ class marks_transfer_service {
             $grade = new ethos_student_gradable_components_subcomponents_info_grade();
             $grade->bannerId = $grade_log->student_number;
             $grade->currentReason = $grade_log->current_reason;
+            $grade->score = isset($grade_log->score) ? (int)$grade_log->score : 0;
             $grade->comment = $grade_log->comment ?? "";
-            $grade->score = $grade_log->score ?? 0;
             $grade->completedDate = $grade_log->completed_date
                 ? convert_date_for_ethos($trace, $grade_log->completed_date)
                 : date("Y-m-d");
@@ -213,7 +213,7 @@ class marks_transfer_service {
                 }
             }
 
-            if (!empty($grade_log->score) && $grade->comment === "Not Attempted") {
+            if ($grade->score > 0 && $grade->comment === "Not Attempted") {
                 $grade->comment = "";
             }
             
