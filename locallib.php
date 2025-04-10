@@ -62,7 +62,8 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
     if ($exception) {
         $assessment_log_history_object->response_code = $exception->getCode();
         $assessment_log_history_object->response_name = $exception->getResponse()->getReasonPhrase();
-        $assessment_log_history_object->error_message = $exception->getMessage();
+        //$assessment_log_history_object->error_message = $exception->getMessage();
+        $assessment_log_history_object->error_message = $exception->getResponse()->getBody()->getContents();
     } else if ($response_object) {
         $assessment_log_history_object->response_code = 200;
         if (empty($response_object->failureList)) {
