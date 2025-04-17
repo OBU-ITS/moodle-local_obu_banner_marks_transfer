@@ -7,7 +7,7 @@
         <TABLE NAME="marks_xfer_status" COMMENT="List of statuses usable in the plugin for assessments">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-                <FIELD NAME="status" TYPE="text" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Name of available status type"/>
+                <FIELD NAME="status" TYPE="text" LENGTH="15" NOTNULL="true" SEQUENCE="false" COMMENT="Name of available status type"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

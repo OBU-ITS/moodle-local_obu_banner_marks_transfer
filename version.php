@@ -23,12 +23,12 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2025041001;
+$plugin->version = 2025041501;
 $plugin->requires = 2012120301;
 $plugin->component = 'local_obu_banner_marks_transfer';
 $plugin->maturity = MATURITY_STABLE;
 
-$plugin->release = 'v0.1.6';
+$plugin->release = 'v0.1.7';
 $plugin->dependencies = array(
     'enrol_ethos' => 2025022001,
 );

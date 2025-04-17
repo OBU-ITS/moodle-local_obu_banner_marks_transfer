@@ -58,7 +58,7 @@ class marks_transfer_service {
         $sql = "SELECT gl.*
                 FROM {marks_xfer_grade_log} gl
                 JOIN {marks_xfer_status} s ON gl.status = s.id
-                WHERE s.status <> 'Success'
+                WHERE s.status NOT IN ('Success', 'Needs review')
                 ORDER BY gl.marks_xfer_assess_log_id
                 ";
 
