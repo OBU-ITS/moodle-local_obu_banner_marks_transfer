@@ -58,7 +58,7 @@ class marks_transfer_service {
         $sql = "SELECT gl.*
                 FROM {marks_xfer_grade_log} gl
                 JOIN {marks_xfer_status} s ON gl.status = s.id
-                WHERE s.status <> 'Success'
+                WHERE s.status NOT IN ('Success', 'Needs review')
                 ORDER BY gl.marks_xfer_assess_log_id
                 ";
 
@@ -128,6 +128,7 @@ class marks_transfer_service {
         try {
             $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
             var_dump($marks_transfer_ethos_object);
+            $trace->output(print_r($marks_transfer_ethos_object, true));
         } catch (\Exception $e) {
             $trace->output("Failed to create marks transfer ethos object for {$assessment_with_grade_logs->access_restriction_group_idnum}: " . $e->getMessage());
             return;

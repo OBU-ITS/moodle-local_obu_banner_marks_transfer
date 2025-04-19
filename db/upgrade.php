@@ -65,5 +65,24 @@ function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 2025030702, 'local', 'obu_banner_marks_transfer');
     }
 
+    if ($oldversion < 2025041501) {
+        $table = new xmldb_table('marks_xfer_status');
+        $field = new xmldb_field('status', XMLDB_TYPE_TEXT, '15', null, XMLDB_NOTNULL, false);
+
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_precision($table, $field);
+        }
+
+        $existing = $DB->get_record('marks_xfer_status', ['status' => 'Needs review']);
+
+        if (!$existing) {
+            $status = new stdClass();
+            $status->status = 'Needs review';
+            $DB->insert_record('marks_xfer_status', $status);
+        }
+
+        upgrade_plugin_savepoint(true, 2025041501, 'local', 'obu_banner_marks_transfer');
+    }
+
     return $result;
 }
