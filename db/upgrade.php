@@ -85,7 +85,7 @@ function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
             $DB->insert_record('marks_xfer_status', $status);
         }
 
-        upgrade_plugin_savepoint(true, 2025041501, 'local', 'obu_banner_marks_transfer');
+        upgrade_plugin_savepoint(true, 2025042901, 'local', 'obu_banner_marks_transfer');
     }
 
     return $result;
