@@ -217,11 +217,11 @@ class marks_transfer_service {
             if ($grade->score > 0 && $grade->comment === "Not Attempted") {
                 $grade->comment = "";
             }
-            
+
             if ($grade_log->extension_date) {
                 $grade->extensionDate = convert_date_for_ethos($trace, $grade_log->extension_date);
             }
-            
+
             $info->setGrade($grade);
         }
 
