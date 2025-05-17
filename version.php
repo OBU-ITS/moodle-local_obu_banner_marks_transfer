@@ -23,7 +23,7 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2025051700;
+$plugin->version = 2025051701;
 $plugin->requires = 2012120301;
 $plugin->component = 'local_obu_banner_marks_transfer';
 $plugin->maturity = MATURITY_STABLE;
