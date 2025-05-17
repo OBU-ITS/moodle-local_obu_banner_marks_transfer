@@ -88,5 +88,24 @@ function xmldb_local_obu_banner_marks_transfer_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 2025042902, 'local', 'obu_banner_marks_transfer');
     }
 
+    if ($oldversion < 2025051700) {
+        global $DB;
+
+        // Truncate tables used in marks transfer specific to the class
+        $DB->delete_records('marks_xfer_asses_history');
+        $DB->delete_records('marks_xfer_asses_log');
+        $DB->delete_records('marks_xfer_grade_history');
+        $DB->delete_records('marks_xfer_grade_log');
+        $DB->delete_records('local_grade_transfer_obu');
+
+
+        // Output a debug message during upgrade (for CLI or logs)
+        mtrace('Truncated previous marks transfer tables');
+
+        // Save the upgrade point
+        upgrade_plugin_savepoint(true, 2025051700, 'local', 'obu_banner_marks_transfer');
+    }
+
+
     return $result;
 }
