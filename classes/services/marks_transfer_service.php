@@ -58,7 +58,7 @@ class marks_transfer_service {
         $sql = "SELECT gl.*
                 FROM {marks_xfer_grade_log} gl
                 JOIN {marks_xfer_status} s ON gl.status = s.id
-                WHERE s.status <> 'Success'
+                WHERE s.status NOT IN ('Success', 'Needs review')
                 ORDER BY gl.marks_xfer_assess_log_id
                 ";
 
@@ -128,6 +128,7 @@ class marks_transfer_service {
         try {
             $marks_transfer_ethos_object = $this->prepare_marks_transfer_ethos_object($trace, $assessment_with_grade_logs);
             var_dump($marks_transfer_ethos_object);
+            $trace->output(print_r($marks_transfer_ethos_object, true));
         } catch (\Exception $e) {
             $trace->output("Failed to create marks transfer ethos object for {$assessment_with_grade_logs->access_restriction_group_idnum}: " . $e->getMessage());
             return;
@@ -201,8 +202,8 @@ class marks_transfer_service {
             $grade = new ethos_student_gradable_components_subcomponents_info_grade();
             $grade->bannerId = $grade_log->student_number;
             $grade->currentReason = $grade_log->current_reason;
+            $grade->score = isset($grade_log->score) ? (int)$grade_log->score : 0;
             $grade->comment = $grade_log->comment ?? "";
-            $grade->score = $grade_log->score ?? 0;
             $grade->completedDate = $grade_log->completed_date
                 ? convert_date_for_ethos($trace, $grade_log->completed_date)
                 : date("Y-m-d");
@@ -213,7 +214,7 @@ class marks_transfer_service {
                 }
             }
 
-            if (!empty($grade_log->score) && $grade->comment === "Not Attempted") {
+            if ($grade->score > 0 && $grade->comment === "Not Attempted") {
                 $grade->comment = "";
             }
 

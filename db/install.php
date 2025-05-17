@@ -11,7 +11,8 @@ function xmldb_local_obu_banner_marks_transfer_install() {
     $statuses = [
         ['status' => 'Pending'],
         ['status' => 'Success'],
-        ['status' => 'Failed']
+        ['status' => 'Failed'],
+        ['status' => 'Needs review']
     ];
 
     foreach ($statuses as $status) {

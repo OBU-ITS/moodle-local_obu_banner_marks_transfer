@@ -62,7 +62,8 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
     if ($exception) {
         $assessment_log_history_object->response_code = $exception->getCode();
         $assessment_log_history_object->response_name = $exception->getResponse()->getReasonPhrase();
-        $assessment_log_history_object->error_message = $exception->getMessage();
+        //$assessment_log_history_object->error_message = $exception->getMessage();
+        $assessment_log_history_object->error_message = $exception->getResponse()->getBody()->getContents();
     } else if ($response_object) {
         $assessment_log_history_object->response_code = 200;
         if (empty($response_object->failureList)) {
@@ -91,8 +92,13 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
         $grade_log_history_object->marks_xfer_grade_log_id = $grade_log->id;
         $grade_log_history_object->marks_xfer_assess_history_id = $assessment_log_history_id;
         if ($exception) {
-            $grade_log_history_object->xfer_message = $exception->getMessage();
-            $grade_log_history_object->status = 3;
+            $needs_review = check_repeated_failure($grade_log);
+            $grade_log_history_object->xfer_message = $exception->getResponse()->getBody()->getContents();
+            if ($needs_review){
+                $grade_log_history_object->status = 4;
+            } else {
+                $grade_log_history_object->status = 3;
+            }
         } elseif ($response_object) {
             if (empty($response_object->failureList)) {
                 $grade_log_history_object->xfer_message = "Successful transfer";
@@ -100,8 +106,14 @@ function store_logs_in_history(\progress_trace $trace, $assessment_with_grade_lo
             } else {
                 $is_failed = check_failure_list($response_object->failureList, $grade_log);
                 if ($is_failed) {
+                    $needs_review = check_repeated_failure($grade_log);
+
                     $grade_log_history_object->xfer_message = $is_failed->failureMessage ?? "Unknown error";
-                    $grade_log_history_object->status = 3; // Failed
+                    if ($needs_review) {
+                        $grade_log_history_object->status = 4; // Needs review
+                    } else {
+                        $grade_log_history_object->status = 3; // Failed
+                    }
                 } else {
                     $grade_log_history_object->xfer_message = "Successful transfer";
                     $grade_log_history_object->status = 2; // Success
@@ -145,6 +157,7 @@ function update_grade_log_statuses(array $status_updates) {
 
     $case_statement = "CASE id ";
     $ids = [];
+    $timestamp =  time();
 
     foreach ($status_updates as $update) {
         $case_statement .= "WHEN {$update['id']} THEN {$update['status']} ";
@@ -155,12 +168,12 @@ function update_grade_log_statuses(array $status_updates) {
 
     $id_list = implode(',', $ids);
 
-    $sql = "UPDATE {marks_xfer_grade_log} SET status = $case_statement WHERE id IN ($id_list)";
-    $DB->execute($sql);
+    $sql = "UPDATE {marks_xfer_grade_log} SET status = $case_statement, lastupdated = :timestamp WHERE id IN ($id_list)";
+    $DB->execute($sql, ['timestamp' => $timestamp]);
 }
 
 function convert_date_for_ethos(\progress_trace $trace, $original_date) {
-    $date_object = DateTime::createFromFormat("l, d F Y, H:i", $original_date);
+    $date_object = DateTime::createFromFormat("l, j F Y, g:i A", $original_date);
 
     if ($date_object) {
         return $date_object->format("Y-m-d");
@@ -168,4 +181,17 @@ function convert_date_for_ethos(\progress_trace $trace, $original_date) {
         $trace->output("Invalid date format.");
         return null;
     }
+}
+
+function check_repeated_failure($grade_log) {
+    global $DB;
+
+    $existing_log = $DB->get_record('marks_xfer_grade_log', ['id' => $grade_log->id]);
+
+    if (!$existing_log) {
+        return false;
+    }
+
+    $time_difference = time() - $existing_log->timecreated;
+    return $time_difference > 3600;
 }
